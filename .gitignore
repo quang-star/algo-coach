@@ -17,3 +17,6 @@ Thumbs.db
 site*.tar.gz
 desktop.png
 mobile.png
+
+# Supabase temporary files
+supabase/.temp/
