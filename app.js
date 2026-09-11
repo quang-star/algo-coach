@@ -769,9 +769,45 @@ function openCloudDialog() {
 
 async function saveCloudConfig(event) {
   event.preventDefault();
-  const url=$("#supabaseUrlInput").value.trim().replace(/\/$/,""); const anonKey=$("#supabaseKeyInput").value.trim();
+  let url = $("#supabaseUrlInput").value.trim();
+  url = url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
+  $("#supabaseUrlInput").value = url;
+  const anonKey = $("#supabaseKeyInput").value.trim();
   if(!/^https:\/\/.+\.supabase\.co$/.test(url) || anonKey.length<20) return showToast("Kiểm tra lại Project URL và anon key");
   localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({url,anonKey})); cloudClient=null; cloudUser=null; initCloudClient(); await bootstrapCloud(); showToast("Đã lưu cấu hình Supabase");
+}
+
+async function signInPassword() {
+  const email = $("#cloudEmailInput").value.trim();
+  const password = $("#cloudPasswordInput")?.value || "";
+  if (!email || !password) return showToast("Nhập đầy đủ email và mật khẩu");
+  const client = initCloudClient();
+  if (!client) return showToast("Lưu cấu hình Supabase trước");
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) return showToast(error.message);
+  cloudUser = data.user;
+  await bootstrapCloud();
+  updateCloudUI();
+  showToast(`Đã đăng nhập: ${email}`);
+}
+
+async function signUpPassword() {
+  const email = $("#cloudEmailInput").value.trim();
+  const password = $("#cloudPasswordInput")?.value || "";
+  if (!email || !password) return showToast("Nhập đầy đủ email và mật khẩu");
+  if (password.length < 6) return showToast("Mật khẩu phải từ 6 ký tự trở lên");
+  const client = initCloudClient();
+  if (!client) return showToast("Lưu cấu hình Supabase trước");
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) return showToast(error.message);
+  if (data.session) {
+    cloudUser = data.user;
+    await bootstrapCloud();
+    updateCloudUI();
+    showToast(`Đăng ký và đăng nhập thành công: ${email}`);
+  } else {
+    showToast("Đã tạo tài khoản! Vui lòng bấm Đăng nhập.");
+  }
 }
 
 async function signInMagicLink() {
@@ -1333,6 +1369,8 @@ $("#cloudSettingsButton")?.addEventListener("click", openCloudDialog);
 $("#importBackupButton")?.addEventListener("click", importData);
 $("#joinCloudClassFromDialogButton")?.addEventListener("click", joinCloudClass);
 $("#cloudConfigForm")?.addEventListener("submit", saveCloudConfig);
+$("#cloudSignInBtn")?.addEventListener("click", signInPassword);
+$("#cloudSignUpBtn")?.addEventListener("click", signUpPassword);
 $("#cloudMagicLinkButton")?.addEventListener("click", signInMagicLink);
 $("#cloudGoogleButton")?.addEventListener("click", signInGoogle);
 $("#cloudSignOutButton")?.addEventListener("click", async()=>{if(cloudClient)await cloudClient.auth.signOut();cloudUser=null;updateCloudUI();showToast("Đã đăng xuất cloud");});
