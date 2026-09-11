@@ -728,7 +728,17 @@ function exportReviewCalendar() {
 }
 
 function getSupabaseConfig() {
-  try { return JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY)) || null; } catch { return null; }
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const cUrl = params.get("cloudUrl");
+    const cKey = params.get("cloudKey");
+    if (cUrl && cKey) {
+      const cleanUrl = cUrl.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
+      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url: cleanUrl, anonKey: cKey }));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    return JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY)) || null;
+  } catch { return null; }
 }
 
 function initCloudClient() {
@@ -743,9 +753,11 @@ function initCloudClient() {
 
 async function bootstrapCloud() {
   const client = initCloudClient();
-  if (!client) return updateCloudUI();
-  const { data } = await client.auth.getSession();
-  cloudUser = data.session?.user || null;
+  if (!client) { updateCloudUI(); return; }
+  try {
+    const { data } = await client.auth.getSession();
+    cloudUser = data.session?.user || null;
+  } catch { cloudUser = null; }
   updateCloudUI();
   if (cloudUser) performCloudSync();
 }
@@ -784,7 +796,12 @@ async function signInPassword() {
   const client = initCloudClient();
   if (!client) return showToast("Lưu cấu hình Supabase trước");
   const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error) return showToast(error.message);
+  if (error) {
+    if (error.message.includes("Email not confirmed")) {
+      return showToast("Tài khoản chưa xác nhận email. Hãy vào Supabase tắt 'Confirm email' là vào được ngay!");
+    }
+    return showToast(error.message);
+  }
   cloudUser = data.user;
   await bootstrapCloud();
   updateCloudUI();
@@ -799,14 +816,19 @@ async function signUpPassword() {
   const client = initCloudClient();
   if (!client) return showToast("Lưu cấu hình Supabase trước");
   const { data, error } = await client.auth.signUp({ email, password });
-  if (error) return showToast(error.message);
+  if (error) {
+    if (error.message.includes("already registered")) {
+      return showToast("Tài khoản đã tạo rồi, bấm Đăng nhập nhé!");
+    }
+    return showToast(error.message);
+  }
   if (data.session) {
     cloudUser = data.user;
     await bootstrapCloud();
     updateCloudUI();
     showToast(`Đăng ký và đăng nhập thành công: ${email}`);
   } else {
-    showToast("Đã tạo tài khoản! Vui lòng bấm Đăng nhập.");
+    showToast("Đã tạo tài khoản! Vui lòng bấm Đăng nhập (hoặc tắt 'Confirm email' trên Supabase).");
   }
 }
 
@@ -1371,6 +1393,14 @@ $("#joinCloudClassFromDialogButton")?.addEventListener("click", joinCloudClass);
 $("#cloudConfigForm")?.addEventListener("submit", saveCloudConfig);
 $("#cloudSignInBtn")?.addEventListener("click", signInPassword);
 $("#cloudSignUpBtn")?.addEventListener("click", signUpPassword);
+$("#copyPhoneConfigLinkBtn")?.addEventListener("click", ()=>{
+  const config = getSupabaseConfig();
+  if(!config?.url || !config?.anonKey) return showToast("Hãy lưu URL và Key trước khi copy link.");
+  const base = window.location.origin + window.location.pathname;
+  const link = `${base}?cloudUrl=${encodeURIComponent(config.url)}&cloudKey=${encodeURIComponent(config.anonKey)}`;
+  navigator.clipboard.writeText(link);
+  showToast("Đã copy link! Gửi sang điện thoại mở lên là tự điền xong cấu hình.");
+});
 $("#cloudMagicLinkButton")?.addEventListener("click", signInMagicLink);
 $("#cloudGoogleButton")?.addEventListener("click", signInGoogle);
 $("#cloudSignOutButton")?.addEventListener("click", async()=>{if(cloudClient)await cloudClient.auth.signOut();cloudUser=null;updateCloudUI();showToast("Đã đăng xuất cloud");});
