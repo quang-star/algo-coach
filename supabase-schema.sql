@@ -1,0 +1,123 @@
+-- OLP/26 V5.5 - run once in Supabase SQL Editor.
+-- Uses Auth + Postgres + Row Level Security. Never put the service_role key in the browser.
+
+create extension if not exists pgcrypto;
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null default 'Learner',
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.user_states (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  state jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.classes (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  code text not null unique check (char_length(code) between 4 and 12),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.class_members (
+  class_id uuid not null references public.classes(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  joined_at timestamptz not null default now(),
+  primary key (class_id, user_id)
+);
+
+alter table public.profiles enable row level security;
+alter table public.user_states enable row level security;
+alter table public.classes enable row level security;
+alter table public.class_members enable row level security;
+
+-- Profiles only contain a display name. Authenticated users may read them so a teacher can label class members.
+drop policy if exists "profiles read authenticated" on public.profiles;
+create policy "profiles read authenticated" on public.profiles for select to authenticated using (true);
+drop policy if exists "profiles write own" on public.profiles;
+create policy "profiles write own" on public.profiles for insert to authenticated with check (auth.uid() = id);
+drop policy if exists "profiles update own" on public.profiles;
+create policy "profiles update own" on public.profiles for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);
+
+-- A learner can read/write their own state. A class owner can read state for members of their class.
+drop policy if exists "state read own or teacher" on public.user_states;
+create policy "state read own or teacher" on public.user_states for select to authenticated using (
+  auth.uid() = user_id
+  or exists (
+    select 1 from public.class_members cm
+    join public.classes c on c.id = cm.class_id
+    where cm.user_id = user_states.user_id and c.owner_id = auth.uid()
+  )
+);
+drop policy if exists "state insert own" on public.user_states;
+create policy "state insert own" on public.user_states for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "state update own" on public.user_states;
+create policy "state update own" on public.user_states for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Class metadata is readable to signed-in users so a student can resolve an invite code.
+drop policy if exists "classes read authenticated" on public.classes;
+create policy "classes read authenticated" on public.classes for select to authenticated using (true);
+drop policy if exists "classes insert owner" on public.classes;
+create policy "classes insert owner" on public.classes for insert to authenticated with check (auth.uid() = owner_id);
+drop policy if exists "classes update owner" on public.classes;
+create policy "classes update owner" on public.classes for update to authenticated using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "classes delete owner" on public.classes;
+create policy "classes delete owner" on public.classes for delete to authenticated using (auth.uid() = owner_id);
+
+-- Students can join themselves; class owners can list their members.
+drop policy if exists "members read self or owner" on public.class_members;
+create policy "members read self or owner" on public.class_members for select to authenticated using (
+  auth.uid() = user_id
+  or exists (select 1 from public.classes c where c.id = class_id and c.owner_id = auth.uid())
+);
+drop policy if exists "members join self" on public.class_members;
+create policy "members join self" on public.class_members for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "members leave self or owner" on public.class_members;
+create policy "members leave self or owner" on public.class_members for delete to authenticated using (
+  auth.uid() = user_id
+  or exists (select 1 from public.classes c where c.id = class_id and c.owner_id = auth.uid())
+);
+
+create index if not exists class_members_user_id_idx on public.class_members(user_id);
+create index if not exists classes_owner_id_idx on public.classes(owner_id);
+
+-- V6 AI Coach ---------------------------------------------------------------
+create table if not exists public.ai_requests (
+  id bigint generated by default as identity primary key,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  task text not null,
+  provider text not null,
+  model text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.ai_cache (
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  cache_key text not null,
+  task text not null,
+  response jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, cache_key)
+);
+
+alter table public.ai_requests enable row level security;
+alter table public.ai_cache enable row level security;
+
+drop policy if exists "ai requests own select" on public.ai_requests;
+create policy "ai requests own select" on public.ai_requests for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "ai requests own insert" on public.ai_requests;
+create policy "ai requests own insert" on public.ai_requests for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "ai cache own select" on public.ai_cache;
+create policy "ai cache own select" on public.ai_cache for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "ai cache own insert" on public.ai_cache;
+create policy "ai cache own insert" on public.ai_cache for insert to authenticated with check (auth.uid() = user_id);
+drop policy if exists "ai cache own update" on public.ai_cache;
+create policy "ai cache own update" on public.ai_cache for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create index if not exists ai_requests_user_created_idx on public.ai_requests(user_id, created_at desc);
