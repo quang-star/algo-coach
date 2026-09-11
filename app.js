@@ -1547,3 +1547,725 @@ function saveReasoningGap(){if(!currentReasoningReview)return;const gaps=Array.i
 function setupReasoningVoice(){const btn=$("#reasoningVoiceButton"),status=$("#reasoningVoiceStatus");if(!btn)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){btn.disabled=true;if(status)status.textContent='Trình duyệt này chưa hỗ trợ nhập giọng nói.';return;}const rec=new SR();rec.lang='vi-VN';rec.continuous=true;rec.interimResults=true;let base='';let listening=false;rec.onstart=()=>{listening=true;base=$("#reasoningIdea").value.trim();btn.textContent='■ Dừng ghi';if(status)status.textContent='Đang nghe… nói hướng làm tự nhiên.';};rec.onresult=e=>{let final='',interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)final+=t+' ';else interim+=t;}if(final)base=(base+' '+final).trim();$("#reasoningIdea").value=(base+' '+interim).trim();};rec.onend=()=>{listening=false;btn.textContent='🎙 Nói hướng làm';if(status)status.textContent='Đã dừng nhập giọng nói.';};rec.onerror=()=>{if(status)status.textContent='Không nhận được giọng nói. Bạn vẫn có thể gõ.';};btn.addEventListener('click',()=>{if(listening)rec.stop();else rec.start();});}
 populateReasoningTopics();setupReasoningVoice();
 $("#reasoningForm")?.addEventListener('submit',e=>{e.preventDefault();runReasoningReview(false);});$("#clearReasoningButton")?.addEventListener('click',clearReasoning);$("#newDryRunButton")?.addEventListener('click',()=>runReasoningReview(true));$("#saveReasoningMistakeButton")?.addEventListener('click',saveReasoningGap);
+
+// ============================================================================
+// V6.3 PROBLEM EXTRACTOR & BOOKMARKLET
+// ============================================================================
+let activeProblemParserTarget = 'codeReview'; // 'codeReview' | 'reasoning'
+
+function parseProblemText(raw) {
+  if (!raw || !raw.trim()) return null;
+  const text = raw.trim();
+
+  // 1. Check if it is a MarisaOJ URL
+  const urlMatch = text.match(/marisaoj\.com\/problem\/([A-Za-z0-9_-]+)/i);
+  let knownExercise = null;
+  if (urlMatch) {
+    const pId = urlMatch[1];
+    knownExercise = EXERCISES.find(ex => ex.id === `m${pId}` || ex.id === pId || ex.url.includes(pId));
+  }
+
+  // 2. Extract Title
+  let title = '';
+  if (knownExercise) {
+    title = knownExercise.title;
+  } else {
+    const titleMatch = text.match(/(?:bài|problem)\s*([0-9]+)?\s*[:\-–]?\s*([^\n\r]+)/i) ||
+                       text.match(/^([^\n\r]{3,80})/);
+    if (titleMatch) {
+      title = (titleMatch[2] || titleMatch[1] || titleMatch[0]).trim();
+      title = title.replace(/^(?:đề bài|statement)[:\-]?\s*/i, '');
+    }
+  }
+
+  // 3. Extract Limits
+  let timeLimit = '';
+  let memoryLimit = '';
+  const timeMatch = text.match(/(?:thời gian|time limit|giới hạn thời gian)\s*[:\-–]?\s*([0-9.]+\s*s(?:ec(?:ond)?)?)/i);
+  if (timeMatch) timeLimit = timeMatch[1];
+  const memMatch = text.match(/(?:bộ nhớ|memory limit|giới hạn bộ nhớ)\s*[:\-–]?\s*([0-9]+\s*(?:MB|GB|KB))/i);
+  if (memMatch) memoryLimit = memMatch[1];
+
+  // 4. Extract Constraints
+  const constraints = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (line.match(/(?:[nNmMkKqQpP]|A_i|a\[i\]|[a-z])\s*(?:<=?|≤)\s*[0-9\^e\+\*]+/i) ||
+        line.match(/[0-9]+\s*(?:<=?|≤)\s*[nNmMkKqQpP]/i) ||
+        line.match(/(?:10\^|1e[0-9]|subtask|sub-task)/i)) {
+      constraints.push(line.replace(/^[•\-\*]\s*/, ''));
+    }
+  }
+
+  // 5. Guess Topic
+  let suggestedTopic = knownExercise?.topicId || null;
+  if (!suggestedTopic) {
+    const lower = text.toLowerCase();
+    if (lower.includes('nhị phân') || lower.includes('binary search') || lower.includes('lower_bound')) suggestedTopic = 'binary-search';
+    else if (lower.includes('hai con trỏ') || lower.includes('two pointer') || lower.includes('sliding window')) suggestedTopic = 'two-pointers';
+    else if (lower.includes('tiền tố') || lower.includes('prefix sum') || lower.includes('tổng đoạn')) suggestedTopic = 'prefix';
+    else if (lower.includes('dijkstra') || lower.includes('đường đi ngắn nhất') || lower.includes('mst') || lower.includes('kruskal')) suggestedTopic = 'shortest-path';
+    else if (lower.includes('đồ thị') || lower.includes('bfs') || lower.includes('dfs') || lower.includes('topo')) suggestedTopic = 'graph-basic';
+    else if (lower.includes('quy hoạch động') || lower.includes('dp') || lower.includes('knapsack') || lower.includes('dãy con')) suggestedTopic = 'dp-basic';
+    else if (lower.includes('segment tree') || lower.includes('fenwick') || lower.includes('range query')) suggestedTopic = 'range-query';
+    else if (lower.includes('chuỗi') || lower.includes('xâu') || lower.includes('kmp') || lower.includes('hash')) suggestedTopic = 'strings';
+    else if (lower.includes('ước') || lower.includes('nguyên tố') || lower.includes('sieve') || lower.includes('gcd')) suggestedTopic = 'number-theory';
+    else if (lower.includes('tham lam') || lower.includes('greedy') || lower.includes('sắp xếp')) suggestedTopic = 'sorting-greedy';
+    else if (lower.includes('cây') || lower.includes('lca') || lower.includes('tree')) suggestedTopic = 'tree';
+    else suggestedTopic = 'containers';
+  }
+
+  const limitStr = [timeLimit, memoryLimit].filter(Boolean).join(' · ');
+  const constraintStr = constraints.slice(0, 5).join('\n');
+  let snippet = text.slice(0, 450);
+  if (snippet.length > 350) snippet = snippet.slice(0, 350) + '...';
+
+  let formatted = '';
+  if (title) formatted += `[${title}]\n`;
+  if (limitStr) formatted += `Giới hạn: ${limitStr}\n`;
+  if (constraintStr) formatted += `Constraints:\n${constraintStr}\n\n`;
+  formatted += `Tóm tắt đề:\n${snippet}`;
+
+  return {
+    title: title || 'Bài tập Competitive Programming',
+    limits: limitStr || '1.0s · 256MB (ước tính)',
+    constraints: constraintStr,
+    topicId: suggestedTopic,
+    formattedText: formatted.trim()
+  };
+}
+
+function updateParserPreview() {
+  const raw = $("#rawProblemInput")?.value || '';
+  const parsed = parseProblemText(raw);
+  const previewBox = $("#parserPreview");
+  if (!parsed || !previewBox) {
+    previewBox?.classList.add('hidden');
+    return;
+  }
+  previewBox.classList.remove('hidden');
+  if ($("#previewTitle")) $("#previewTitle").textContent = parsed.title;
+  if ($("#previewLimits")) $("#previewLimits").textContent = parsed.limits;
+  const topicObj = TOPICS.find(t => t.id === parsed.topicId);
+  if ($("#previewTopic")) $("#previewTopic").textContent = topicObj ? `${topicObj.code} · ${topicObj.name}` : 'Cơ bản';
+}
+
+function applyParsedProblem() {
+  const raw = $("#rawProblemInput")?.value || '';
+  const parsed = parseProblemText(raw);
+  if (!parsed) {
+    showToast('Vui lòng dán nội dung đề bài trước.');
+    return;
+  }
+  if (activeProblemParserTarget === 'reasoning') {
+    if ($("#reasoningProblem")) $("#reasoningProblem").value = parsed.formattedText;
+    if (parsed.topicId && $("#reasoningTopic")) $("#reasoningTopic").value = parsed.topicId;
+    $("#reasoningSection")?.scrollIntoView({ behavior: 'smooth' });
+  } else {
+    if ($("#codeReviewProblem")) $("#codeReviewProblem").value = parsed.formattedText;
+    if (parsed.topicId && $("#codeReviewTopic")) $("#codeReviewTopic").value = parsed.topicId;
+    $("#codeReviewSection")?.scrollIntoView({ behavior: 'smooth' });
+  }
+  $("#problemParserDialog")?.close();
+  showToast(`Đã bóc tách thành công đề: ${parsed.title}`);
+}
+
+function setupBookmarklet() {
+  const currentUrl = window.location.href.split('?')[0];
+  const code = `javascript:(function(){const t=document.querySelector('h1,h2,[class*="title"]')?.innerText||document.title;const b=document.body.innerText.slice(0,3500);const u='${currentUrl}?importTitle='+encodeURIComponent(t)+'&importText='+encodeURIComponent(b);window.open(u,'_blank');})();`;
+  const link = $("#marisaBookmarkletLink");
+  const text = $("#bookmarkletCodeText");
+  if (link) link.href = code;
+  if (text) text.value = code;
+}
+
+function checkUrlImportParams() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const importTitle = params.get('importTitle');
+    const importText = params.get('importText');
+    if (importText || importTitle) {
+      const raw = `${importTitle ? importTitle + '\n' : ''}${importText || ''}`;
+      const parsed = parseProblemText(raw);
+      if (parsed) {
+        if ($("#codeReviewProblem")) $("#codeReviewProblem").value = parsed.formattedText;
+        if (parsed.topicId && $("#codeReviewTopic")) $("#codeReviewTopic").value = parsed.topicId;
+        showToast(`Đã nhận diện đề từ MarisaOJ: ${parsed.title}`);
+        $("#codeReviewSection")?.scrollIntoView({ behavior: 'smooth' });
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (e) {
+    console.warn("Could not parse URL import params", e);
+  }
+}
+
+// Wire Parser & Bookmarklet Events
+$("#openProblemParserBtn")?.addEventListener('click', () => {
+  activeProblemParserTarget = 'codeReview';
+  $("#rawProblemInput").value = '';
+  updateParserPreview();
+  $("#problemParserDialog")?.showModal();
+});
+$("#openReasoningProblemParserBtn")?.addEventListener('click', () => {
+  activeProblemParserTarget = 'reasoning';
+  $("#rawProblemInput").value = '';
+  updateParserPreview();
+  $("#problemParserDialog")?.showModal();
+});
+$("#closeProblemParserBtn")?.addEventListener('click', () => $("#problemParserDialog")?.close());
+$("#rawProblemInput")?.addEventListener('input', updateParserPreview);
+$("#applyParsedProblemBtn")?.addEventListener('click', applyParsedProblem);
+$("#pasteFromClipboardBtn")?.addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && $("#rawProblemInput")) {
+      $("#rawProblemInput").value = text;
+      updateParserPreview();
+      showToast('Đã dán từ clipboard!');
+    }
+  } catch {
+    showToast('Hãy dán bằng phím Ctrl+V vào ô bên trên.');
+  }
+});
+
+$("#openBookmarkletBtn")?.addEventListener('click', () => {
+  setupBookmarklet();
+  $("#bookmarkletDialog")?.showModal();
+});
+$("#closeBookmarkletBtn")?.addEventListener('click', () => $("#bookmarkletDialog")?.close());
+$("#copyBookmarkletCodeBtn")?.addEventListener('click', () => {
+  const text = $("#bookmarkletCodeText");
+  if (text) {
+    text.select();
+    navigator.clipboard.writeText(text.value);
+    showToast('Đã sao chép mã Bookmarklet vào clipboard!');
+  }
+});
+
+
+// ============================================================================
+// V6.3 VIRTUAL MOCK CONTEST ARENA
+// ============================================================================
+const VIRTUAL_CONTEST_KEY = "olp26-virtual-contest-v1";
+let virtualContest = null;
+let contestTimerInterval = null;
+
+function getProposedContestProblems(strategy = 'standard') {
+  let easyList = EXERCISES.filter(e => e.difficulty === 'easy');
+  let mediumList = EXERCISES.filter(e => e.difficulty === 'medium');
+  let hardList = EXERCISES.filter(e => e.difficulty === 'hard' || e.difficulty === 'extreme');
+
+  if (strategy === 'unsolved') {
+    const unsolvedEasy = easyList.filter(e => !state.exercises?.[e.id]);
+    const unsolvedMed = mediumList.filter(e => !state.exercises?.[e.id]);
+    const unsolvedHard = hardList.filter(e => !state.exercises?.[e.id]);
+    if (unsolvedEasy.length) easyList = unsolvedEasy;
+    if (unsolvedMed.length) mediumList = unsolvedMed;
+    if (unsolvedHard.length) hardList = unsolvedHard;
+  }
+
+  // Shuffle pick
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)] || arr[0];
+  const p1 = pick(easyList);
+  const p2 = pick(mediumList);
+  const p3 = pick(hardList);
+
+  return [
+    { ...p1, label: 'Bài A', targetMinutes: 18, status: 'doing', timeSeconds: 0 },
+    { ...p2, label: 'Bài B', targetMinutes: 24, status: 'none', timeSeconds: 0 },
+    { ...p3, label: 'Bài C', targetMinutes: 18, status: 'none', timeSeconds: 0 }
+  ];
+}
+
+let previewContestProblems = [];
+
+function renderContestSetupPreview() {
+  const container = $("#contestPreviewProblems");
+  if (!container) return;
+  const strategy = $("#contestProblemSetSelect")?.value || 'standard';
+  if (!previewContestProblems.length) {
+    previewContestProblems = getProposedContestProblems(strategy);
+  }
+
+  container.innerHTML = previewContestProblems.map((p, idx) => {
+    const topic = TOPICS.find(t => t.id === p.topicId);
+    return `
+      <div class="contest-preview-card">
+        <div class="contest-preview-card-info">
+          <span class="problem-badge ${p.difficulty}">${p.label.replace('Bài ', '')}</span>
+          <div>
+            <strong>${escapeHTML(p.title)}</strong>
+            <small>${escapeHTML(topic?.name || p.topicId)} · ${p.points} điểm · Dự kiến ${p.targetMinutes}'</small>
+          </div>
+        </div>
+        <span class="time-pill">${DIFFICULTY[p.difficulty] || p.difficulty}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function openVirtualContestDialog() {
+  const dialog = $("#contestArenaDialog");
+  if (!dialog) return;
+
+  if (virtualContest && !virtualContest.isFinished) {
+    // Show live screen
+    $("#contestSetupScreen")?.classList.add('hidden');
+    $("#contestSummaryScreen")?.classList.add('hidden');
+    $("#contestLiveScreen")?.classList.remove('hidden');
+    renderContestLiveArena();
+  } else {
+    // Show setup screen
+    previewContestProblems = [];
+    renderContestSetupPreview();
+    $("#contestSetupScreen")?.classList.remove('hidden');
+    $("#contestLiveScreen")?.classList.add('hidden');
+    $("#contestSummaryScreen")?.classList.add('hidden');
+  }
+  dialog.showModal();
+}
+
+function launchVirtualContest() {
+  const duration = Number($("#contestDurationSelect")?.value || 60);
+  const now = Date.now();
+  const endsAt = now + duration * 60 * 1000;
+
+  virtualContest = {
+    id: makeId(),
+    durationMinutes: duration,
+    startedAt: now,
+    endsAt: endsAt,
+    paused: false,
+    pausedRemainingSeconds: duration * 60,
+    problems: previewContestProblems.map(p => ({
+      id: p.id,
+      title: p.title,
+      topicId: p.topicId,
+      difficulty: p.difficulty,
+      points: p.points,
+      url: p.url,
+      label: p.label,
+      status: p.status || 'none',
+      timeSeconds: 0
+    })),
+    activeProblemIndex: 0,
+    isFinished: false
+  };
+
+  saveVirtualContestToStorage();
+  $("#contestSetupScreen")?.classList.add('hidden');
+  $("#contestLiveScreen")?.classList.remove('hidden');
+  if ($("#contestLiveName")) $("#contestLiveName").textContent = `Virtual Mock ${duration} phút`;
+
+  renderContestLiveArena();
+  startContestTimer();
+  updateMockButtonStatus();
+  showToast(`Bắt đầu tính giờ thi Virtual Mock (${duration} phút)! Chúc thi tốt!`);
+}
+
+function startContestTimer() {
+  if (contestTimerInterval) clearInterval(contestTimerInterval);
+  contestTimerInterval = setInterval(tickContestTimer, 1000);
+  tickContestTimer();
+}
+
+function tickContestTimer() {
+  if (!virtualContest || virtualContest.isFinished) {
+    if (contestTimerInterval) clearInterval(contestTimerInterval);
+    return;
+  }
+
+  if (virtualContest.paused) {
+    if ($("#contestClockStatus")) $("#contestClockStatus").textContent = "Tạm dừng";
+    return;
+  }
+
+  const now = Date.now();
+  const remainingSec = Math.max(0, Math.floor((virtualContest.endsAt - now) / 1000));
+  const totalSec = virtualContest.durationMinutes * 60;
+  const elapsedSec = totalSec - remainingSec;
+
+  // Track time on active problem
+  const activeP = virtualContest.problems[virtualContest.activeProblemIndex];
+  if (activeP) {
+    activeP.timeSeconds = (activeP.timeSeconds || 0) + 1;
+    const activeTimerEl = $(`#card-timer-${virtualContest.activeProblemIndex}`);
+    if (activeTimerEl) {
+      activeTimerEl.textContent = formatContestSeconds(activeP.timeSeconds);
+    }
+  }
+
+  // Format Clock
+  const mins = Math.floor(remainingSec / 60);
+  const secs = remainingSec % 60;
+  const clockText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  const clockEl = $("#contestCountdown");
+  if (clockEl) {
+    clockEl.textContent = clockText;
+    clockEl.classList.remove('warning', 'danger');
+    if (remainingSec <= 300) clockEl.classList.add('danger');
+    else if (remainingSec <= 900) clockEl.classList.add('warning');
+  }
+
+  // Progress Bar
+  const percent = Math.min(100, Math.max(0, (elapsedSec / totalSec) * 100));
+  const bar = $("#contestTimeProgressBar");
+  if (bar) bar.style.width = `${percent}%`;
+
+  if ($("#contestClockStatus")) {
+    $("#contestClockStatus").textContent = `Đang thi · ${Math.round(percent)}% thời gian`;
+  }
+
+  updateMockButtonStatus();
+
+  // Save every 5 seconds
+  if (remainingSec % 5 === 0) {
+    saveVirtualContestToStorage();
+  }
+
+  // Time is up!
+  if (remainingSec <= 0) {
+    clearInterval(contestTimerInterval);
+    finishVirtualContest(false);
+  }
+}
+
+function formatContestSeconds(totalSec = 0) {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}p ${String(s).padStart(2, '0')}s`;
+}
+
+function renderContestLiveArena() {
+  const container = $("#contestArenaProblems");
+  if (!container || !virtualContest) return;
+
+  container.innerHTML = virtualContest.problems.map((p, idx) => {
+    const isFocus = idx === virtualContest.activeProblemIndex;
+    const topic = TOPICS.find(t => t.id === p.topicId);
+    return `
+      <article class="contest-arena-card ${isFocus ? 'active-focus' : ''}" id="arena-card-${idx}">
+        <div class="contest-arena-card-top">
+          <div class="contest-card-meta">
+            <span class="problem-badge ${p.difficulty}">${p.label.replace('Bài ', '')}</span>
+            <div class="contest-card-title">
+              <strong>${escapeHTML(p.title)}</strong>
+              <small>${escapeHTML(topic?.name || p.topicId)} · ${p.points}đ</small>
+            </div>
+          </div>
+          <div class="contest-card-timer" id="card-timer-${idx}">${formatContestSeconds(p.timeSeconds || 0)}</div>
+        </div>
+
+        <div class="contest-arena-card-actions">
+          <a class="contest-open-link" href="${p.url}" target="_blank" rel="noopener noreferrer">
+            Mở đề MarisaOJ ↗
+          </a>
+          <div class="contest-status-buttons">
+            <button class="status-pill-btn ${isFocus ? 'active status-doing' : ''}" type="button" onclick="focusContestProblem(${idx})">
+              ${isFocus ? '● Đang làm' : 'Chọn làm bài này'}
+            </button>
+            <button class="status-pill-btn ${p.status === 'ac' ? 'active status-ac' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'ac')">
+              ✓ AC
+            </button>
+            <button class="status-pill-btn ${p.status === 'wa' ? 'active status-wa' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'wa')">
+              WA / TLE
+            </button>
+            <button class="status-pill-btn ${p.status === 'stuck' ? 'active status-stuck' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'stuck')">
+              Stuck
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+window.focusContestProblem = function(idx) {
+  if (!virtualContest) return;
+  virtualContest.activeProblemIndex = idx;
+  renderContestLiveArena();
+  saveVirtualContestToStorage();
+};
+
+window.setContestProblemVerdict = function(idx, verdict) {
+  if (!virtualContest) return;
+  const p = virtualContest.problems[idx];
+  if (p) {
+    p.status = (p.status === verdict) ? 'none' : verdict;
+    // If marked AC, mark in global state as solved too
+    if (p.status === 'ac' && p.id) {
+      state.exercises = state.exercises || {};
+      state.exercises[p.id] = true;
+      saveState('Đã cập nhật bài AC trong contest');
+    }
+  }
+  renderContestLiveArena();
+  saveVirtualContestToStorage();
+};
+
+function togglePauseResumeContest() {
+  if (!virtualContest) return;
+  const btn = $("#pauseResumeContestBtn");
+  if (!virtualContest.paused) {
+    // Pause
+    virtualContest.paused = true;
+    virtualContest.pausedRemainingSeconds = Math.max(0, Math.floor((virtualContest.endsAt - Date.now()) / 1000));
+    if (btn) btn.textContent = "▶ Tiếp tục thi";
+    showToast('Contest đã tạm dừng.');
+  } else {
+    // Resume
+    virtualContest.paused = false;
+    virtualContest.endsAt = Date.now() + (virtualContest.pausedRemainingSeconds * 1000);
+    if (btn) btn.textContent = "⏸ Tạm dừng";
+    showToast('Tiếp tục thi đấu!');
+  }
+  saveVirtualContestToStorage();
+}
+
+function finishVirtualContest(promptConfirm = true) {
+  if (!virtualContest) return;
+  if (promptConfirm && !confirm('Bạn có chắc muốn kết thúc buổi thi thử này để xem kết quả?')) {
+    return;
+  }
+
+  if (contestTimerInterval) clearInterval(contestTimerInterval);
+  virtualContest.isFinished = true;
+
+  const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
+  const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
+  const scaledScore = Math.round((earnedPoints / (totalPoints || 1)) * 100);
+  const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
+
+  const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
+  const totalUsedMins = Math.max(1, Math.round(totalUsedSec / 60));
+
+  // Switch UI to Summary Screen
+  $("#contestLiveScreen")?.classList.add('hidden');
+  $("#contestSummaryScreen")?.classList.remove('hidden');
+
+  if ($("#contestFinalScore")) $("#contestFinalScore").textContent = scaledScore;
+  if ($("#contestAcCount")) $("#contestAcCount").textContent = `${acCount}/3`;
+  if ($("#contestTimeUsed")) $("#contestTimeUsed").textContent = `${totalUsedMins}'`;
+
+  // Pace Rating
+  let rating = "Tốt";
+  if (acCount === 3) rating = "Xuất sắc";
+  else if (acCount === 0) rating = "Cần chỉnh chiến thuật";
+  else if (scaledScore >= 60) rating = "Đạt mục tiêu OLP";
+  if ($("#contestPaceRating")) $("#contestPaceRating").textContent = rating;
+
+  // Render Time Breakdown
+  const list = $("#contestTimeBreakdownList");
+  if (list) {
+    list.innerHTML = virtualContest.problems.map(p => {
+      const pMins = Math.round((p.timeSeconds || 0) / 60);
+      let statusBadge = `<span style="color:var(--muted)">Chưa xong</span>`;
+      if (p.status === 'ac') statusBadge = `<span style="color:var(--lime)">✓ AC (+${p.points}đ)</span>`;
+      else if (p.status === 'stuck') statusBadge = `<span style="color:#ffab91">Stuck</span>`;
+      else if (p.status === 'wa') statusBadge = `<span style="color:#ff6b6b">WA/TLE</span>`;
+
+      return `
+        <div class="time-breakdown-item">
+          <div>
+            <strong>${escapeHTML(p.label)}: ${escapeHTML(p.title)}</strong>
+            <small style="display:block; color:var(--muted)">${DIFFICULTY[p.difficulty] || p.difficulty} · ${p.points}đ</small>
+          </div>
+          <div style="text-align:right">
+            <b>${pMins} phút</b> · ${statusBadge}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Strategy Feedback
+  let feedback = '';
+  const stuckProblem = virtualContest.problems.find(p => p.status === 'stuck' || (p.status !== 'ac' && (p.timeSeconds || 0) > 1200));
+  if (acCount === 3) {
+    feedback = `<strong>Tuyệt vời!</strong> Bạn đã giải quyết trọn vẹn cả 3 bài trong thời gian quy định. Hãy duy trì nhịp độ này cho các mock tiếp theo.`;
+  } else if (stuckProblem && (stuckProblem.timeSeconds || 0) > 1500) {
+    feedback = `<strong>Lưu ý về quản lý thời gian:</strong> Bạn đã dành hơn 25 phút cho một bài chưa ra đáp án (${stuckProblem.title}). Trong kỳ thi OLP thật, hãy tuân thủ nguyên tắc: <em>nếu sau 15 phút không tiến triển, hãy ghi lại ý tưởng và chuyển sang bài khác</em> để tối đa hóa điểm số.`;
+  } else if (acCount >= 1) {
+    feedback = `<strong>Chiến thuật ổn định:</strong> Bạn đã khóa được điểm ở bài nền tảng. Tiếp tục ôn sâu các chủ đề của các bài chưa AC để tăng tốc độ làm bài.`;
+  } else {
+    feedback = `<strong>Đừng nản lòng:</strong> Mixed Mock giả lập áp lực thi đấu thật. Hãy đưa các bài chưa giải được vào Error Notebook để bóc tách lại invariant và edge case.`;
+  }
+  if ($("#contestStrategyFeedback")) $("#contestStrategyFeedback").innerHTML = feedback;
+
+  // Clear active contest
+  localStorage.removeItem(VIRTUAL_CONTEST_KEY);
+  updateMockButtonStatus();
+  showToast('Đã hoàn thành buổi thi Virtual Mock!');
+}
+
+function saveContestToHistory() {
+  if (!virtualContest) return;
+  const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
+  const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
+  const scaledScore = Math.round((earnedPoints / (totalPoints || 1)) * 100);
+  const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
+  const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
+  const totalUsedMins = Math.max(1, Math.round(totalUsedSec / 60));
+
+  // Find weak topic
+  const failedProblem = virtualContest.problems.find(p => p.status !== 'ac');
+  const weakTopic = failedProblem ? failedProblem.topicId : '';
+
+  state.mocks.push({
+    id: makeId(),
+    score: scaledScore,
+    solved: acCount,
+    minutes: totalUsedMins,
+    submits: 3,
+    weakTopicId: weakTopic,
+    note: `[Virtual Mock] ${acCount}/3 AC · ${totalUsedMins} phút · Đề: ${virtualContest.problems.map(p => p.title).join(', ')}`,
+    createdAt: new Date().toISOString()
+  });
+
+  // Auto-log failed problems to Error Notebook if user wishes
+  if (failedProblem) {
+    state.errors.push({
+      id: makeId(),
+      topicId: failedProblem.topicId,
+      type: failedProblem.status === 'wa' ? 'implementation' : 'recognition',
+      note: `[Mock] Chưa hoàn thành bài ${failedProblem.title} (${failedProblem.points}đ) trong thời gian contest.`,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  saveState('Đã lưu kết quả Virtual Mock');
+  renderAll();
+  $("#contestArenaDialog")?.close();
+  virtualContest = null;
+  showToast('Đã lưu kết quả thi đấu vào nhật ký!');
+}
+
+async function runAIPostMortem() {
+  if (!virtualContest) return;
+  const client = initCloudClient();
+  if (!client || !cloudUser) {
+    showToast('Đăng nhập Supabase trước để dùng AI Post-Mortem.');
+    openCloudDialog();
+    return;
+  }
+
+  const btn = $("#aiPostMortemBtn");
+  const resultBox = $("#aiPostMortemResult");
+  btn?.setAttribute('disabled', '');
+  btn?.classList.add('ai-loading');
+  if (resultBox) {
+    resultBox.classList.remove('hidden');
+    resultBox.innerHTML = '<p class="ai-loading">Coach đang phân tích chiến thuật phân bổ thời gian và tâm lý thi đấu…</p>';
+  }
+
+  try {
+    const summaryData = {
+      score: $("#contestFinalScore")?.textContent || 0,
+      acCount: $("#contestAcCount")?.textContent || '0/3',
+      timeUsed: $("#contestTimeUsed")?.textContent || '0m',
+      problems: virtualContest.problems.map(p => ({
+        title: p.title,
+        difficulty: p.difficulty,
+        status: p.status,
+        minutesSpent: Math.round((p.timeSeconds || 0) / 60)
+      }))
+    };
+
+    const { data, error } = await client.functions.invoke('ai-coach', {
+      body: {
+        task: 'mistake_analysis',
+        context: buildAIContext(),
+        input: {
+          problem: `Virtual Mock Contest 3 bài`,
+          idea: JSON.stringify(summaryData, null, 2)
+        }
+      }
+    });
+
+    if (error) throw error;
+    const res = data?.result || {};
+    if (resultBox) {
+      resultBox.innerHTML = `
+        <h4>✦ Nhận xét của AI Coach về buổi thi</h4>
+        <p>${escapeHTML(res.summary || 'Đã phân tích chiến thuật thi đấu.')}</p>
+        ${Array.isArray(res.root_causes) ? `<ul>${res.root_causes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul>` : ''}
+      `;
+    }
+    showToast('Đã hoàn thành AI Post-Mortem!');
+  } catch (e) {
+    console.error(e);
+    if (resultBox) {
+      resultBox.innerHTML = `<p style="color:var(--danger)">Không thể kết nối AI Coach: ${escapeHTML(e.message || e)}</p>`;
+    }
+  } finally {
+    btn?.removeAttribute('disabled');
+    btn?.classList.remove('ai-loading');
+  }
+}
+
+function saveVirtualContestToStorage() {
+  if (!virtualContest) return;
+  localStorage.setItem(VIRTUAL_CONTEST_KEY, JSON.stringify(virtualContest));
+}
+
+function restoreVirtualContestFromStorage() {
+  try {
+    const raw = localStorage.getItem(VIRTUAL_CONTEST_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && saved.endsAt && !saved.isFinished) {
+      virtualContest = saved;
+      const remaining = Math.max(0, Math.floor((virtualContest.endsAt - Date.now()) / 1000));
+      if (remaining <= 0) {
+        localStorage.removeItem(VIRTUAL_CONTEST_KEY);
+        virtualContest = null;
+      } else {
+        startContestTimer();
+        updateMockButtonStatus();
+      }
+    }
+  } catch (e) {
+    console.warn("Could not restore virtual contest", e);
+  }
+}
+
+function updateMockButtonStatus() {
+  const btn = $("#startVirtualMockButton");
+  if (!btn) return;
+  if (virtualContest && !virtualContest.isFinished) {
+    const remaining = Math.max(0, Math.floor((virtualContest.endsAt - Date.now()) / 1000));
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    btn.textContent = `🏆 Đang thi Virtual Mock (${m}:${String(s).padStart(2, '0')})`;
+    btn.classList.add('live-contest-active');
+  } else {
+    btn.textContent = `🏆 Bắt đầu Virtual Mock (Thi thử)`;
+    btn.classList.remove('live-contest-active');
+  }
+}
+
+// Wire Contest Events
+$("#startVirtualMockButton")?.addEventListener('click', openVirtualContestDialog);
+$("#rerollContestProblemsBtn")?.addEventListener('click', () => {
+  const strategy = $("#contestProblemSetSelect")?.value || 'standard';
+  previewContestProblems = getProposedContestProblems(strategy);
+  renderContestSetupPreview();
+});
+$("#contestProblemSetSelect")?.addEventListener('change', () => {
+  const strategy = $("#contestProblemSetSelect")?.value || 'standard';
+  previewContestProblems = getProposedContestProblems(strategy);
+  renderContestSetupPreview();
+});
+$("#launchContestBtn")?.addEventListener('click', launchVirtualContest);
+$("#pauseResumeContestBtn")?.addEventListener('click', togglePauseResumeContest);
+$("#finishContestEarlyBtn")?.addEventListener('click', () => finishVirtualContest(true));
+$("#closeContestDialogBtn")?.addEventListener('click', () => $("#contestArenaDialog")?.close());
+$("#closeContestSummaryBtn")?.addEventListener('click', () => $("#contestArenaDialog")?.close());
+$("#saveContestToHistoryBtn")?.addEventListener('click', saveContestToHistory);
+$("#aiPostMortemBtn")?.addEventListener('click', runAIPostMortem);
+
+// Init on load
+setupBookmarklet();
+checkUrlImportParams();
+restoreVirtualContestFromStorage();

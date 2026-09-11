@@ -163,6 +163,10 @@
               <label>Chủ đề<select id="codeReviewTopic"></select></label>
               <label>Verdict<select id="codeReviewVerdict"><option value="WA">WA · Wrong Answer</option><option value="TLE">TLE · Time Limit</option><option value="RE">RE · Runtime Error</option><option value="MLE">MLE · Memory Limit</option><option value="UNSURE">Chưa biết / cần review</option></select></label>
             </div>
+            <div class="quick-import-bar">
+              <button class="text-button quick-import-btn" id="openProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
+              <button class="text-button bookmarklet-hint-btn" id="openBookmarkletBtn" type="button">📌 Bookmarklet 1-chạm</button>
+            </div>
             <label>Tóm tắt đề / constraints<textarea id="codeReviewProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần...
 Có thể dán statement rút gọn và constraints quan trọng."></textarea></label>
             <label>Code C++<textarea id="codeReviewCode" class="code-input" rows="18" maxlength="24000" spellcheck="false" placeholder="#include <bits/stdc++.h>
@@ -200,6 +204,9 @@ using namespace std;
         <div class="reasoning-grid">
           <form class="reasoning-form glass" id="reasoningForm">
             <div class="form-row"><label>Chủ đề<select id="reasoningTopic"></select></label><label>Mức đánh giá<select id="reasoningMode"><option value="idea">Idea only</option><option value="detailed" selected>Detailed reasoning</option><option value="dry_run">Dry run focused</option></select></label></div>
+            <div class="quick-import-bar">
+              <button class="text-button quick-import-btn" id="openReasoningProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
+            </div>
             <label>Tóm tắt đề / constraints<textarea id="reasoningProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần tìm..."></textarea></label>
             <label>Hướng làm của bạn<textarea id="reasoningIdea" rows="10" maxlength="7000" placeholder="Ví dụ: Em binary search trên đáp án. Với mỗi mid, check bằng greedy..."></textarea></label>
             <div class="voice-row"><button class="secondary-button" id="reasoningVoiceButton" type="button">🎙 Nói hướng làm</button><span id="reasoningVoiceStatus">Nếu trình duyệt hỗ trợ speech-to-text.</span></div>
@@ -279,7 +286,10 @@ using namespace std;
             <p class="section-kicker">CHECKPOINTS</p>
             <h2 id="reviewTitle">Nhật ký &amp; mixed mock</h2>
           </div>
-          <button class="secondary-button" id="logMockButton" type="button">+ Ghi mixed mock</button>
+          <div class="mock-header-actions">
+            <button class="primary-button compact-button" id="startVirtualMockButton" type="button">🏆 Bắt đầu Virtual Mock (Thi thử)</button>
+            <button class="secondary-button compact-button" id="logMockButton" type="button">+ Ghi thủ công</button>
+          </div>
         </div>
 
         <div class="review-grid">
@@ -393,6 +403,166 @@ using namespace std;
 
 
     <dialog id="cloudDialog" class="app-dialog"><div class="cloud-dialog-body"><div class="dialog-head"><div><p class="section-kicker">V5.5 · SUPABASE SYNC</p><h2>Đồng bộ đa thiết bị</h2></div><button class="dialog-close" type="button" onclick="this.closest('dialog').close()">×</button></div><p class="cloud-help">Anon key có thể dùng ở frontend khi Row Level Security được bật. Chạy file <code>supabase-schema.sql</code> trong SQL Editor trước.</p><form id="cloudConfigForm"><label>Supabase Project URL<input id="supabaseUrlInput" type="url" placeholder="https://xxxx.supabase.co" required /></label><label>Publishable / anon key<input id="supabaseKeyInput" type="password" autocomplete="off" required /></label><button class="secondary-button full" type="submit">Lưu cấu hình</button></form><div class="cloud-auth"><p id="cloudAuthStatus">Chưa cấu hình Supabase</p><label>Email<input id="cloudEmailInput" type="email" placeholder="you@example.com" /></label><div class="cloud-auth-actions"><button class="secondary-button" id="cloudMagicLinkButton" type="button">Gửi magic link</button><button class="primary-button" id="cloudGoogleButton" type="button">Đăng nhập Google</button></div><div class="cloud-utility-actions"><button class="text-button" id="importBackupButton" type="button">Nhập backup JSON</button><button class="text-button" id="joinCloudClassFromDialogButton" type="button">Tham gia lớp bằng mã</button></div><button class="text-button hidden" id="cloudSignOutButton" type="button">Đăng xuất cloud</button></div></div></dialog>
+
+    <dialog id="problemParserDialog" class="app-dialog problem-parser-dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">SMART EXTRACTOR</p>
+          <h2>Bóc tách đề bài MarisaOJ / CP</h2>
+        </div>
+        <button class="dialog-close" id="closeProblemParserBtn" aria-label="Đóng" type="button">×</button>
+      </div>
+      <p class="cloud-help">Dán đề bài thô (Ctrl+A rồi Ctrl+C từ MarisaOJ, Codeforces, VNOJ...) hoặc link. Hệ thống sẽ tự động bóc tách <strong>Tên bài</strong>, <strong>Time/Memory Limit</strong>, <strong>Constraints</strong> và <strong>Tóm tắt đề</strong>.</p>
+      <label>Nội dung đề bài hoặc URL
+        <textarea id="rawProblemInput" rows="9" placeholder="Ví dụ:
+Bài 515: Tìm kiếm nhị phân
+Thời gian: 1.0s · Bộ nhớ: 256MB
+Đề bài: Cho dãy A gồm n số nguyên...
+Giới hạn: 1 <= n <= 10^5..."></textarea>
+      </label>
+      <div class="parser-preview hidden" id="parserPreview">
+        <div class="parser-preview-row"><span>Tên bài:</span> <strong id="previewTitle">-</strong></div>
+        <div class="parser-preview-row"><span>Giới hạn:</span> <strong id="previewLimits">-</strong></div>
+        <div class="parser-preview-row"><span>Chủ đề nhận dạng:</span> <strong id="previewTopic">-</strong></div>
+      </div>
+      <div class="dialog-actions-row">
+        <button class="primary-button" id="applyParsedProblemBtn" type="button">Bóc tách &amp; Điền vào form</button>
+        <button class="secondary-button" id="pasteFromClipboardBtn" type="button">📋 Dán từ Clipboard</button>
+      </div>
+    </dialog>
+
+    <dialog id="bookmarkletDialog" class="app-dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">1-CLICK IMPORT</p>
+          <h2>Bookmarklet MarisaOJ</h2>
+        </div>
+        <button class="dialog-close" id="closeBookmarkletBtn" aria-label="Đóng" type="button">×</button>
+      </div>
+      <p class="cloud-help">Kéo nút bên dưới thả vào thanh Bookmarks của trình duyệt (ấn <code>Ctrl+Shift+B</code> nếu chưa thấy thanh bookmark). Khi đang xem bất kỳ bài nào trên MarisaOJ, click nút bookmark này để tự động gửi đề sang OLP Coach!</p>
+      <div class="bookmarklet-box">
+        <a class="primary-button bookmarklet-link" id="marisaBookmarkletLink" href="#" onclick="return false;">📌 Gửi sang OLP Coach</a>
+        <small>← Kéo nút này lên Bookmark Bar của bạn</small>
+      </div>
+      <div class="bookmarklet-manual">
+        <label>Hoặc tạo bookmark thủ công với URL sau:</label>
+        <textarea id="bookmarkletCodeText" readonly rows="3" class="code-input"></textarea>
+        <button class="secondary-button compact-button" id="copyBookmarkletCodeBtn" type="button">Sao chép mã</button>
+      </div>
+    </dialog>
+
+    <dialog id="contestArenaDialog" class="app-dialog contest-dialog">
+      <!-- Màn hình 1: Cấu hình thi đấu -->
+      <div id="contestSetupScreen">
+        <div class="dialog-head">
+          <div>
+            <p class="section-kicker">VIRTUAL ARENA</p>
+            <h2>Phòng thi đấu Virtual Mock</h2>
+          </div>
+          <button class="dialog-close" id="closeContestDialogBtn" aria-label="Đóng" type="button">×</button>
+        </div>
+        <p class="cloud-help">Thi thử áp lực thật: Đề 3 bài chuẩn OLP phân bổ độ khó (Dễ · Vừa · Khó), đếm ngược thời gian, ghi nhận thời gian làm từng bài và AI Post-Mortem chiến thuật.</p>
+        
+        <div class="form-row">
+          <label>Thời lượng thi
+            <select id="contestDurationSelect">
+              <option value="60" selected>60 phút (Chuẩn Mixed Mock)</option>
+              <option value="90">90 phút (Thử thách OLP)</option>
+              <option value="120">120 phút (Đề đầy đủ)</option>
+              <option value="30">30 phút (Speedrun)</option>
+            </select>
+          </label>
+          <label>Bộ đề thi
+            <select id="contestProblemSetSelect">
+              <option value="standard" selected>Chuẩn: 1 Dễ + 1 Vừa + 1 Khó</option>
+              <option value="unsolved">Ưu tiên bài chưa AC trong kho</option>
+              <option value="all">Ngẫu nhiên từ toàn bộ kho</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="contest-preview-wrap">
+          <div class="card-heading compact">
+            <div><p class="section-kicker">PROBLEMSET</p><h3>3 bài thi trong đề này</h3></div>
+            <button class="text-button" id="rerollContestProblemsBtn" type="button">↻ Đổi bộ bài khác</button>
+          </div>
+          <div id="contestPreviewProblems" class="contest-preview-grid"></div>
+        </div>
+
+        <div class="contest-strategy-note">
+          <strong>Chiến thuật OLP khuyên dùng:</strong>
+          <ul>
+            <li><strong>00–05':</strong> Đọc lướt cả 3 đề, chọn bài dễ nhất làm trước.</li>
+            <li><strong>05–25':</strong> Chắc chắn ăn trọn điểm Bài 1 (Dễ) trước khi sang bài khó.</li>
+            <li><strong>25–55':</strong> Làm bài 2; nếu kẹt quá 15 phút không hướng thì đánh dấu stuck và chuyển bài.</li>
+          </ul>
+        </div>
+
+        <button class="primary-button full" id="launchContestBtn" type="button">Bắt đầu tính giờ thi đấu ⏱</button>
+      </div>
+
+      <!-- Màn hình 2: Trực tiếp thi đấu (Live Arena) -->
+      <div id="contestLiveScreen" class="hidden">
+        <div class="contest-live-bar">
+          <div class="contest-live-title">
+            <span class="live-pill">● LIVE CONTEST</span>
+            <h3 id="contestLiveName">Virtual Mock OLP</h3>
+          </div>
+          <div class="contest-clock-block">
+            <div class="contest-clock" id="contestCountdown">60:00</div>
+            <span id="contestClockStatus" class="contest-clock-sub">Thời gian còn lại</span>
+          </div>
+        </div>
+
+        <div class="contest-timer-bar"><span id="contestTimeProgressBar"></span></div>
+
+        <div class="contest-arena-problems" id="contestArenaProblems">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div class="contest-live-actions">
+          <button class="secondary-button" id="pauseResumeContestBtn" type="button">⏸ Tạm dừng</button>
+          <button class="primary-button" id="finishContestEarlyBtn" type="button">Nộp bài &amp; Kết thúc thi 🏁</button>
+        </div>
+      </div>
+
+      <!-- Màn hình 3: Tổng kết & AI Post-Mortem -->
+      <div id="contestSummaryScreen" class="hidden">
+        <div class="dialog-head">
+          <div>
+            <p class="section-kicker">CONTEST COMPLETED</p>
+            <h2>Tổng kết Virtual Mock</h2>
+          </div>
+          <button class="dialog-close" id="closeContestSummaryBtn" aria-label="Đóng" type="button">×</button>
+        </div>
+
+        <div class="contest-score-card">
+          <div class="score-badge-col">
+            <span class="score-label">ĐIỂM THI</span>
+            <strong id="contestFinalScore">0</strong>
+            <small>/ 100 điểm</small>
+          </div>
+          <div class="score-meta-col">
+            <div><span class="stat-num" id="contestAcCount">0/3</span><small>Bài AC</small></div>
+            <div><span class="stat-num" id="contestTimeUsed">0'</span><small>Thời gian</small></div>
+            <div><span class="stat-num" id="contestPaceRating">Tốt</span><small>Nhịp độ</small></div>
+          </div>
+        </div>
+
+        <div class="contest-time-breakdown">
+          <h4>Phân bổ thời gian thực tế:</h4>
+          <div id="contestTimeBreakdownList" class="time-breakdown-rows"></div>
+        </div>
+
+        <div class="contest-advice" id="contestStrategyFeedback"></div>
+
+        <div class="contest-summary-footer">
+          <button class="primary-button" id="saveContestToHistoryBtn" type="button">✓ Lưu kết quả vào Lịch sử Mock</button>
+          <button class="secondary-button" id="aiPostMortemBtn" type="button">✦ AI Post-Mortem</button>
+        </div>
+        <div id="aiPostMortemResult" class="ai-coach-result hidden" aria-live="polite"></div>
+      </div>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
