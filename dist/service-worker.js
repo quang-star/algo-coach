@@ -1,4 +1,4 @@
-const CACHE = "olp26-v61-20260912";
+const CACHE = "olp26-v70-20260913";
 const APP_SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./icons/icon.svg"];
 
 self.addEventListener("install", (event) => {

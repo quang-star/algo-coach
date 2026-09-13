@@ -58,9 +58,13 @@ create policy "state insert own" on public.user_states for insert to authenticat
 drop policy if exists "state update own" on public.user_states;
 create policy "state update own" on public.user_states for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- Class metadata is readable to signed-in users so a student can resolve an invite code.
+-- Class metadata is private. Students resolve an invite code through the
+-- security-definer RPC below, instead of reading every class in the system.
 drop policy if exists "classes read authenticated" on public.classes;
-create policy "classes read authenticated" on public.classes for select to authenticated using (true);
+create policy "classes read owner or member" on public.classes for select to authenticated using (
+  owner_id = auth.uid()
+  or exists (select 1 from public.class_members cm where cm.class_id = classes.id and cm.user_id = auth.uid())
+);
 drop policy if exists "classes insert owner" on public.classes;
 create policy "classes insert owner" on public.classes for insert to authenticated with check (auth.uid() = owner_id);
 drop policy if exists "classes update owner" on public.classes;
@@ -84,6 +88,28 @@ create policy "members leave self or owner" on public.class_members for delete t
 
 create index if not exists class_members_user_id_idx on public.class_members(user_id);
 create index if not exists classes_owner_id_idx on public.classes(owner_id);
+
+create or replace function public.join_class_by_code(p_code text)
+returns table(id uuid, name text, code text)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  target_class public.classes;
+begin
+  if auth.uid() is null then raise exception 'Not authenticated'; end if;
+  select c.* into target_class from public.classes c where upper(c.code) = upper(trim(p_code)) limit 1;
+  if target_class.id is null then raise exception 'Class not found'; end if;
+  insert into public.class_members(class_id, user_id)
+  values (target_class.id, auth.uid())
+  on conflict (class_id, user_id) do nothing;
+  return query select target_class.id, target_class.name, target_class.code;
+end;
+$$;
+
+revoke all on function public.join_class_by_code(text) from public;
+grant execute on function public.join_class_by_code(text) to authenticated;
 
 -- V6 AI Coach ---------------------------------------------------------------
 create table if not exists public.ai_requests (

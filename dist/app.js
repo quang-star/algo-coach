@@ -6,10 +6,12 @@ const TOPICS = [
   { id: "bs-answer", phase: 1, code: "BSA", name: "Binary search on answer", target: 18, note: "check(mid) đơn điệu" },
   { id: "sorting-greedy", phase: 1, code: "GRD", name: "Sorting · Greedy", target: 16, note: "Lịch, deadline & exchange" },
   { id: "number-theory", phase: 2, code: "NUM", name: "Number theory", target: 16, note: "GCD · sieve · inclusion-exclusion" },
-  { id: "graph-basic", phase: 2, code: "GPH", name: "Graph traversal", target: 18, note: "BFS · DFS · topo" },
-  { id: "shortest-path", phase: 2, code: "SP", name: "Shortest path · MST", target: 18, note: "Dijkstra · DSU · Kruskal" },
+  { id: "bitmask", phase: 2, code: "BIT", name: "Bitwise · Bitmask", target: 16, note: "Phép toán bit · submask · bitmask DP" },
+  { id: "backtracking", phase: 2, code: "BCK", name: "Backtracking · Nhánh cận", target: 16, note: "Đệ quy · sinh cấu hình · N-Queens · pruning" },
+  { id: "graph-basic", phase: 2, code: "GPH", name: "Đồ thị (BFS · DFS · Topo)", target: 18, note: "Duyệt BFS/DFS · mê cung grid · liên thông" },
+  { id: "shortest-path", phase: 2, code: "SP", name: "Shortest path · MST", target: 18, note: "Dijkstra · 0-1 BFS · DSU · Kruskal" },
   { id: "dp-basic", phase: 2, code: "DP", name: "Dynamic programming", target: 22, note: "State · transition · optimize" },
-  { id: "range-query", phase: 2, code: "RNG", name: "Range queries", target: 18, note: "Fenwick · segment tree" },
+  { id: "range-query", phase: 2, code: "RNG", name: "Range queries (Fenwick · Segment Tree)", target: 18, note: "Cây Fenwick (BIT) · Segment Tree · Lazy propagation" },
   { id: "strings", phase: 2, code: "STR", name: "String algorithms", target: 14, note: "Hash · KMP · trie" },
   { id: "tree", phase: 3, code: "TRE", name: "Trees · LCA", target: 18, note: "Tree DP · binary lifting" },
   { id: "advanced-dp", phase: 3, code: "ADP", name: "Advanced DP", target: 18, note: "Knapsack · LIS · bitmask" },
@@ -94,6 +96,26 @@ const LESSONS = {
     quiz: { question: "Khi đếm bội của 3 hoặc 5, vì sao phải trừ x/15?", options: ["Bội của 15 chưa được đếm", "Bội của 15 đã bị đếm hai lần", "15 là số nguyên tố", "Để kết quả chia hết cho 3"], answer: 1, explanation: "Mỗi bội của 15 nằm trong cả tập bội 3 và bội 5, nên phép cộng ban đầu đếm nó hai lần." },
     links: [{ name: "MarisaOJ Problemset", note: "Tìm: divisibility, gcd, sieve", url: "https://marisaoj.com/problemset" }, { name: "MarisaOJ Roadmap", note: "Mở cụm Number Theory", url: "https://marisaoj.com/roadmap" }]
   },
+  "bitmask": {
+    goal: "Sử dụng các bit nhị phân để biểu diễn tập con, thực hiện thao tác tập hợp trong O(1) và quy hoạch động trạng thái bit.",
+    recognise: ["Số phần tử tập hợp nhỏ n ≤ 20.", "Cần kiểm tra, thêm, bớt phần tử trong O(1).", "Các phép toán bitwise: AND, OR, XOR, NOT, dịch bit <<, >>.", "Duyệt mọi tập con của một mặt nạ (submask enumeration).", "Bài toán TSP (người du lịch), ghép cặp, phân việc, phủ tập hợp (Bitmask DP)."],
+    steps: ["(1 << i) đại diện cho tập chỉ chứa phần tử i.", "Kiểm tra bit i: (mask >> i) & 1.", "Bật bit i: mask | (1 << i); Tắt bit i: mask & ~(1 << i); Đảo bit i: mask ^ (1 << i).", "Số phần tử: __builtin_popcount(mask).", "Duyệt submask: for(int sub = mask; sub > 0; sub = (sub - 1) & mask)."],
+    template: `// Kiểm tra bit i có bật không:\nbool has = (mask >> i) & 1;\n// Bật / tắt bit i:\nint setBit = mask | (1 << i);\nint unsetBit = mask & ~(1 << i);\n\n// Duyệt mọi submask của mask trong O(3^n):\nfor (int sub = mask; sub > 0; sub = (sub - 1) & mask) {\n  // sub là tập con của mask\n}`,
+    example: "Bài toán TSP (Người giao hàng): dp[mask][u] là chi phí nhỏ nhất khi đã đi qua tập các thành phố bật trong mask và đang đứng tại u. Đi tiếp sang v: dp[mask | (1 << v)][v] = min(dp[mask | (1 << v)][v], dp[mask][u] + c[u][v]).",
+    mistakes: ["Toán tử bit có độ ưu tiên thấp hơn so sánh: phải viết if ((mask >> i) & 1) có đóng mở ngoặc.", "Dùng 1 << i khi i ≥ 31 gây tràn số nguyên (phải dùng 1LL << i).", "Nhầm bitmask DP với DP thường khi n quá lớn (n > 22 thì 2ⁿ nổ TLE/MLE)."],
+    quiz: { question: "Trong C++, biểu thức nào kiểm tra bit thứ i của mask có bật (bằng 1) không?", options: ["mask & i", "(mask >> i) & 1", "mask << i == 1", "mask ^ (1 << i)"], answer: 1, explanation: "(mask >> i) & 1 dịch bit thứ i về vị trí hàng đơn vị rồi AND với 1 để lấy giá trị 0 hoặc 1." },
+    links: [{ name: "Thao tác bit · #108", note: "Rèn luyện các phép toán bit căn bản", url: "https://marisaoj.com/problem/108" }, { name: "MarisaOJ Roadmap", note: "Làm tiếp cụm Bitwise & Bitmask DP", url: "https://marisaoj.com/roadmap" }]
+  },
+  "backtracking": {
+    goal: "Duyệt toàn bộ không gian nghiệm theo cây đệ quy có kiểm tra tính hợp lệ và cắt tỉa nhánh không khả thi.",
+    recognise: ["Giới hạn n nhỏ (n ≤ 20 với 2ⁿ hoặc n ≤ 12 với n!).", "Cần liệt kê mọi cấu hình thỏa điều kiện (nhị phân, hoán vị, tổ hợp, tập con).", "Bài toán xếp hậu (N-Queens), Sudoku, phân hoạch tập hợp, đường đi mê cung."],
+    steps: ["Xác định trạng thái bước i: chọn giá trị cho x[i] từ tập ứng viên khả dĩ.", "Kiểm tra điều kiện hợp lệ (ràng buộc không bị vi phạm).", "Nếu i == n: ghi nhận nghiệm. Ngược lại: gọi đệ quy sang bước i + 1.", "Backtrack: hoàn trả trạng thái (unmark visited / pop_back) để thử phương án khác.", "Nhánh cận: nếu chi phí tạm thời đã tệ hơn nghiệm tốt nhất hiện có thì dừng sớm (pruning)."],
+    template: `void backtrack(int i) {\n  for (int val : candidates) {\n    if (valid(i, val)) {\n      apply(i, val);\n      if (i == n - 1) saveSolution();\n      else backtrack(i + 1);\n      revert(i, val); // Hoàn trả trạng thái (Backtrack)\n    }\n  }\n}`,
+    example: "Bài toán N quân hậu: đặt từng quân hậu trên hàng i từ cột 0 đến n-1; dùng 3 mảng bool đánh dấu cột col[j], đường chéo chính d1[i-j+n], đường chéo phụ d2[i+j] để kiểm tra trong O(1). Sau khi thử đệ quy, gán lại false.",
+    mistakes: ["Quên khôi phục trạng thái (revert / unmark) sau khi đệ quy xong.", "Không cắt tỉa nhánh cận (pruning) khiến số phép thử bùng nổ TLE.", "Điều kiện dừng (base case) bị lệch 1 bước (off-by-one)."],
+    quiz: { question: "Trong thuật toán quay lui, thao tác quan trọng nhất sau khi đệ quy nhánh con quay về là gì?", options: ["Sắp xếp lại mảng", "Hoàn trả trạng thái ban đầu (revert/unmark)", "In kết quả ngay lập tức", "Xóa toàn bộ mảng"], answer: 1, explanation: "Sau khi thử một nhánh con, phải khôi phục trạng thái về như cũ để nhánh thử kế tiếp không bị ảnh hưởng sai lệch." },
+    links: [{ name: "Dãy nhị phân · #115", note: "Bài cơ bản để rèn cây đệ quy sinh cấu hình", url: "https://marisaoj.com/problem/115" }, { name: "N-Queens · #118", note: "Bài toán xếp hậu kinh điển", url: "https://marisaoj.com/problem/118" }]
+  },
   "graph-basic": {
     goal: "Biến bài quan hệ/kết nối thành đỉnh-cạnh và duyệt đúng bằng BFS/DFS/topo.",
     recognise: ["Các đối tượng có quan hệ hai chiều hoặc một chiều.", "Hỏi thành phần liên thông, khoảng cách số cạnh, thứ tự phụ thuộc.", "Trạng thái có thể chuyển sang trạng thái khác."],
@@ -125,14 +147,14 @@ const LESSONS = {
     links: [{ name: "Optimal subset · #713", note: "Bài tối ưu tập con để luyện state", url: "https://marisaoj.com/problem/713" }, { name: "MarisaOJ Roadmap", note: "Theo cụm Dynamic Programming từ dễ", url: "https://marisaoj.com/roadmap" }]
   },
   "range-query": {
-    goal: "Xử lý update/query đoạn trong O(log n) bằng Fenwick hoặc segment tree.",
-    recognise: ["Mảng thay đổi xen kẽ truy vấn.", "Prefix sum tĩnh không còn đủ vì phải cập nhật.", "Phép gộp đoạn có tính kết hợp: sum, min, max, gcd."],
-    steps: ["Point update + prefix/range sum: ưu tiên Fenwick vì ngắn.", "Range query tổng quát hoặc lazy update: segment tree.", "Giữ thống nhất 0-based bên ngoài, 1-based bên trong Fenwick."],
-    template: `void add(int i, long long v) {\n  for (++i; i <= n; i += i & -i) bit[i] += v;\n}\nlong long sumPrefix(int i) {\n  long long s = 0;\n  for (++i; i > 0; i -= i & -i) s += bit[i];\n  return s;\n}`,
-    example: "Tổng [l,r] với Fenwick = sumPrefix(r) - sumPrefix(l-1). Khi l=0, sumPrefix(-1) trả 0 vì sau ++i thì i=0.",
-    mistakes: ["Update bằng giá trị mới thay vì delta = new-old.", "Lẫn chỉ số 0-based và 1-based.", "Dùng Fenwick cho phép toán không có nghịch đảo như min đoạn tùy ý."],
-    quiz: { question: "Point update + range sum nên ưu tiên cấu trúc nào để code gọn?", options: ["Queue", "Fenwick tree", "DSU", "Trie"], answer: 1, explanation: "Fenwick hỗ trợ point update và prefix sum O(log n) với code rất ngắn; range sum là hiệu hai prefix." },
-    links: [{ name: "Range update, minimum query · #204", note: "Segment tree / lazy propagation", url: "https://marisaoj.com/problem/204" }, { name: "Range query · #504", note: "Luyện truy vấn trên đoạn", url: "https://marisaoj.com/problem/504" }]
+    goal: "Xử lý update/query đoạn trong O(log n) bằng Fenwick Tree (Binary Indexed Tree) hoặc Segment Tree.",
+    recognise: ["Mảng thay đổi giá trị xen kẽ các truy vấn đoạn.", "Prefix sum tĩnh không còn đủ vì có thao tác cập nhật (update).", "Phép gộp đoạn có tính kết hợp: sum, min, max, gcd.", "Bài toán đếm số cặp nghịch thế (Inversion Count) hoặc nén tọa độ."],
+    steps: ["Point update + prefix/range sum: ưu tiên Fenwick Tree vì code cực ngắn, bộ nhớ O(n).", "Range query tổng quát (min, max, gcd) hoặc Range update + Range query: dùng Segment Tree kèm Lazy Propagation.", "Giữ thống nhất 0-based bên ngoài, 1-based bên trong Fenwick (dùng ++i)."],
+    template: `// Fenwick Tree (Binary Indexed Tree - BIT):\nvoid add(int i, long long v) {\n  for (++i; i <= n; i += i & -i) bit[i] += v;\n}\nlong long sumPrefix(int i) {\n  long long s = 0;\n  for (++i; i > 0; i -= i & -i) s += bit[i];\n  return s;\n}\nlong long rangeSum(int l, int r) {\n  return sumPrefix(r) - sumPrefix(l - 1);\n}`,
+    example: "Tổng [l,r] với Fenwick = sumPrefix(r) - sumPrefix(l-1). Khi l=0, sumPrefix(-1) trả 0 vì sau ++i thì i=0. Đếm nghịch thế: duyệt từ phải sang trái, ans += sumPrefix(a[i] - 1), rồi add(a[i], 1).",
+    mistakes: ["Update bằng giá trị mới thay vì delta = new-old trong Fenwick.", "Lẫn chỉ số 0-based và 1-based khiến vòng lặp Fenwick bị lặp vô hạn ở 0 hoặc tràn mảng.", "Dùng Fenwick cho phép toán không có tính nghịch đảo như min đoạn tùy ý (phải dùng Segment Tree).", "Quên cấp phát mảng Segment Tree kích thước tối thiểu 4*n."],
+    quiz: { question: "Point update + range sum nên ưu tiên cấu trúc nào để code gọn và nhanh nhất?", options: ["Queue", "Fenwick tree (BIT)", "DSU", "Trie"], answer: 1, explanation: "Fenwick hỗ trợ point update và prefix sum O(log n) với code rất ngắn; range sum là hiệu hai prefix." },
+    links: [{ name: "Cập nhật điểm, truy vấn đoạn · #501", note: "Bài Fenwick / Segment Tree nhập môn", url: "https://marisaoj.com/problem/501" }, { name: "Range query · #504", note: "Luyện truy vấn trên đoạn", url: "https://marisaoj.com/problem/504" }, { name: "Range update, minimum query · #204", note: "Segment tree / lazy propagation", url: "https://marisaoj.com/problem/204" }]
   },
   "strings": {
     goal: "So sánh/tìm mẫu trong chuỗi nhanh bằng prefix-function, hash hoặc trie.",
@@ -229,6 +251,18 @@ const APPLICATIONS = {
     avoid: "Không nhân trực tiếp các số để lấy giao nếu chúng không nguyên tố cùng nhau; phải dùng LCM.",
     problem: { title: "Số thứ k chia hết cho 3, 5 hoặc 7", statement: "Tìm số dương thứ k chia hết cho ít nhất một trong 3,5,7.", map: [["count(x)", "Đếm bao nhiêu số hợp lệ ≤ x"], ["Hợp tập", "+x/3+x/5+x/7"], ["Sửa đếm trùng", "−x/15−x/21−x/35+x/105"], ["Tìm k", "Binary search x nhỏ nhất có count(x)≥k"]], complexity: "O(log đáp án), mỗi check O(1)" }
   },
+  "bitmask": {
+    learn: ["Toán tử bitwise AND/OR/XOR/NOT", "Kiểm tra và bật/tắt bit", "Duyệt submask O(3ⁿ)", "Trạng thái Bitmask DP"],
+    use: "Khi n nhỏ (n ≤ 20) và cần lưu tập hợp các phần tử đã chọn/thăm trong một số nguyên duy nhất.",
+    avoid: "Không dùng bitmask nếu n > 22 vì 2ⁿ trạng thái sẽ vượt quá giới hạn bộ nhớ hoặc thời gian.",
+    problem: { title: "Người du lịch (TSP · Bitmask DP)", statement: "Tìm chu trình đi qua đúng một lần mỗi thành phố trong n thành phố (n ≤ 18) với tổng chi phí nhỏ nhất.", map: [["Biểu diễn tập", "mask n bit: bit i = 1 nghĩa là đã thăm đỉnh i"], ["Trạng thái DP", "dp[mask][u] = chi phí nhỏ nhất khi đã qua mask và dừng tại u"], ["Chuyển trạng thái", "dp[mask | 1<<v][v] = min(..., dp[mask][u] + c[u][v])"], ["Độ phức tạp", "O(2ⁿ · n²) thời gian và O(2ⁿ · n) bộ nhớ"]], complexity: "O(2ⁿ · n²)" }
+  },
+  "backtracking": {
+    learn: ["Trạng thái bước đệ quy", "Tập ứng viên hợp lệ", "Hoàn trả trạng thái (Backtrack)", "Nhánh cận (Pruning)"],
+    use: "Khi n nhỏ (n ≤ 20 với 2ⁿ hoặc n ≤ 12 với n!) và cần liệt kê mọi cấu hình, tìm đường đi hoặc tối ưu hóa có ràng buộc phức tạp.",
+    avoid: "Không dùng quay lui khi n lớn (n ≥ 30) mà không có nhánh cận cực mạnh hoặc không thể chuyển sang DP / Greedy.",
+    problem: { title: "Xếp N quân hậu (N-Queens)", statement: "Xếp n quân hậu lên bàn cờ n×n sao cho không có hai quân nào cùng hàng, cột hay đường chéo.", map: [["Trạng thái", "Đặt quân hậu hàng thứ i"], ["Ứng viên", "Thử từng cột j từ 0 đến n-1"], ["Cắt tỉa O(1)", "Kiểm tra cột col[j], chéo d1[i-j+n], d2[i+j]"], ["Hoàn trả", "Sau khi đệ quy, unmark cả 3 mảng"]], complexity: "O(n!) thời gian với cắt tỉa O(1) kiểm tra" }
+  },
   "graph-basic": {
     learn: ["Đỉnh và cạnh là gì", "Có hướng/vô hướng", "visited/dist", "BFS hay DFS/topo"],
     use: "Khi đề mô tả quan hệ, đường đi, biến đổi trạng thái, thành phần liên thông hoặc thứ tự phụ thuộc.",
@@ -286,18 +320,157 @@ const APPLICATIONS = {
 };
 
 const EXERCISES = [
-  { id: "m515", topicId: "binary-search", title: "Binary search", url: "https://marisaoj.com/problem/515", difficulty: "easy", points: 50 },
-  { id: "m603", topicId: "two-pointers", title: "Climbing", url: "https://marisaoj.com/problem/603", difficulty: "medium", points: 100 },
-  { id: "m657", topicId: "sorting-greedy", title: "Finding teammates", url: "https://marisaoj.com/problem/657", difficulty: "medium", points: 100 },
-  { id: "m385", topicId: "graph-basic", title: "Martian language 2", url: "https://marisaoj.com/problem/385", difficulty: "medium", points: 100 },
-  { id: "m713", topicId: "dp-basic", title: "Optimal subset", url: "https://marisaoj.com/problem/713", difficulty: "hard", points: 180 },
-  { id: "m504", topicId: "range-query", title: "Range query", url: "https://marisaoj.com/problem/504", difficulty: "hard", points: 180 },
-  { id: "m168", topicId: "strings", title: "Compare substring", url: "https://marisaoj.com/problem/168", difficulty: "hard", points: 180 },
-  { id: "m180", topicId: "shortest-path", title: "Bye bye maximum edge", url: "https://marisaoj.com/problem/180", difficulty: "hard", points: 180 },
-  { id: "m567", topicId: "shortest-path", title: "Teleport", url: "https://marisaoj.com/problem/567", difficulty: "hard", points: 180 },
-  { id: "m618", topicId: "advanced-dp", title: "Gifting", url: "https://marisaoj.com/problem/618", difficulty: "hard", points: 180 },
-  { id: "m1010363", topicId: "bs-answer", title: "Maximum mean", url: "https://marisaoj.com/problem/1010363", difficulty: "extreme", points: 300 },
-  { id: "m204", topicId: "range-query", title: "Range update, minimum query", url: "https://marisaoj.com/problem/204", difficulty: "extreme", points: 300 }
+  // Phase 1: Containers (STL)
+  { id: "c1621", topicId: "containers", title: "Distinct Numbers (Set / Unique)", url: "https://cses.fi/problemset/task/1621", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "m1", topicId: "containers", title: "Đếm số phần tử phân biệt", url: "https://marisaoj.com/problem/1", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "c1091", topicId: "containers", title: "Concert Tickets (Multiset lower_bound)", url: "https://cses.fi/problemset/task/1091", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_deque", topicId: "containers", title: "Min/Max trên cửa sổ trượt (Deque)", url: "https://oj.vnoi.info/problem/kmin", difficulty: "medium", points: 100, platform: "vnoj" },
+  { id: "c1164", topicId: "containers", title: "Room Allocation (Priority Queue)", url: "https://cses.fi/problemset/task/1164", difficulty: "hard", points: 180, platform: "cses" },
+
+  // Phase 1: Prefix sum & Difference Array
+  { id: "c1646", topicId: "prefix", title: "Static Range Sum Queries", url: "https://cses.fi/problemset/task/1646", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "m504_pfx", topicId: "prefix", title: "Tổng tiền tố 2D (Prefix sum 2D)", url: "https://marisaoj.com/problem/504", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1661", topicId: "prefix", title: "Subarray Sums II (Prefix Sum + Map)", url: "https://cses.fi/problemset/task/1661", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "cf_276c", topicId: "prefix", title: "Little Girl and Maximum Sum (Difference Array)", url: "https://codeforces.com/problemset/problem/276/C", difficulty: "medium", points: 100, platform: "codeforces" },
+  { id: "c1662", topicId: "prefix", title: "Subarray Divisibility (Prefix Mod N)", url: "https://cses.fi/problemset/task/1662", difficulty: "hard", points: 180, platform: "cses" },
+
+  // Phase 1: Two pointers & Sliding window
+  { id: "c1640", topicId: "two-pointers", title: "Sum of Two Values (Sorted Two Pointers)", url: "https://cses.fi/problemset/task/1640", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "c1660", topicId: "two-pointers", title: "Subarray Sums I (Positive sliding window)", url: "https://cses.fi/problemset/task/1660", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "m603", topicId: "two-pointers", title: "Climbing", url: "https://marisaoj.com/problem/603", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "cf_279b", topicId: "two-pointers", title: "Books (Cửa sổ trượt dài nhất)", url: "https://codeforces.com/problemset/problem/279/B", difficulty: "medium", points: 100, platform: "codeforces" },
+  { id: "c1641", topicId: "two-pointers", title: "Sum of Three Values", url: "https://cses.fi/problemset/task/1641", difficulty: "medium", points: 100, platform: "cses" },
+
+  // Phase 1: Binary Search
+  { id: "m515", topicId: "binary-search", title: "Binary search cơ bản", url: "https://marisaoj.com/problem/515", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "cf_706b", topicId: "binary-search", title: "Interesting drink (upper_bound)", url: "https://codeforces.com/problemset/problem/706/B", difficulty: "easy", points: 50, platform: "codeforces" },
+  { id: "c1084", topicId: "binary-search", title: "Apartments (Greedy + Two Pointers/BS)", url: "https://cses.fi/problemset/task/1084", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "c1620", topicId: "binary-search", title: "Factory Machines (Chặt nhị phân thời gian)", url: "https://cses.fi/problemset/task/1620", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_vsteps", topicId: "binary-search", title: "Bậc thang (Quy hoạch động & tìm kiếm)", url: "https://oj.vnoi.info/problem/vsteps", difficulty: "easy", points: 50, platform: "vnoj" },
+
+  // Phase 1: Binary Search on Answer
+  { id: "c1085", topicId: "bs-answer", title: "Array Division (Chia mảng max sum min)", url: "https://cses.fi/problemset/task/1085", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "cf_1201c", topicId: "bs-answer", title: "Maximum Median (BS on answer)", url: "https://codeforces.com/problemset/problem/1201/C", difficulty: "medium", points: 100, platform: "codeforces" },
+  { id: "c2420", topicId: "bs-answer", title: "Multiplication Table (K-th smallest)", url: "https://cses.fi/problemset/task/2420", difficulty: "hard", points: 180, platform: "cses" },
+  { id: "m1010363", topicId: "bs-answer", title: "Maximum mean (BS nghiệm thực)", url: "https://marisaoj.com/problem/1010363", difficulty: "extreme", points: 300, platform: "marisa" },
+  { id: "v_ktest", topicId: "bs-answer", title: "Chia nhóm tối ưu OLP", url: "https://oj.vnoi.info/problem/ktest", difficulty: "medium", points: 100, platform: "vnoj" },
+
+  // Phase 1: Sorting & Greedy
+  { id: "cf_405a", topicId: "sorting-greedy", title: "Gravity Flip", url: "https://codeforces.com/problemset/problem/405/A", difficulty: "easy", points: 50, platform: "codeforces" },
+  { id: "c1629", topicId: "sorting-greedy", title: "Movie Festival (Interval Scheduling)", url: "https://cses.fi/problemset/task/1629", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "m657", topicId: "sorting-greedy", title: "Finding teammates", url: "https://marisaoj.com/problem/657", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1630", topicId: "sorting-greedy", title: "Tasks and Deadlines (Minimize penalty)", url: "https://cses.fi/problemset/task/1630", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_car", topicId: "sorting-greedy", title: "Sửa xe (Exchange Argument)", url: "https://oj.vnoi.info/problem/car", difficulty: "hard", points: 180, platform: "vnoj" },
+
+  // Phase 2: Number Theory
+  { id: "c1713", topicId: "number-theory", title: "Counting Divisors (Đếm ước số O(sqrt(N)))", url: "https://cses.fi/problemset/task/1713", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "c1081", topicId: "number-theory", title: "Common Divisors (GCD trên mảng lớn)", url: "https://cses.fi/problemset/task/1081", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "c1712", topicId: "number-theory", title: "Exponentiation II (Lũy thừa tầng · Fermat)", url: "https://cses.fi/problemset/task/1712", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_vratf", topicId: "number-theory", title: "Chia đàn bò (Đệ quy & Ước số)", url: "https://oj.vnoi.info/problem/vratf", difficulty: "easy", points: 50, platform: "vnoj" },
+  { id: "c2185", topicId: "number-theory", title: "Prime Multiples (Inclusion-Exclusion)", url: "https://cses.fi/problemset/task/2185", difficulty: "hard", points: 180, platform: "cses" },
+
+  // Phase 2: Bitwise & Bitmask
+  { id: "m108", topicId: "bitmask", title: "Thao tác bit cơ bản", url: "https://marisaoj.com/problem/108", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "m109", topicId: "bitmask", title: "Đếm số bit 1 (Hamming weight)", url: "https://marisaoj.com/problem/109", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "m110", topicId: "bitmask", title: "Tìm số xuất hiện lẻ lần (XOR)", url: "https://marisaoj.com/problem/110", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "m111", topicId: "bitmask", title: "Hai số xuất hiện lẻ lần", url: "https://marisaoj.com/problem/111", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m112", topicId: "bitmask", title: "Tập con có tổng bằng S (Bitmask)", url: "https://marisaoj.com/problem/112", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m619", topicId: "bitmask", title: "Người du lịch (TSP Bitmask DP)", url: "https://marisaoj.com/problem/619", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m620", topicId: "bitmask", title: "Phân việc tối ưu (Assignment Bitmask DP)", url: "https://marisaoj.com/problem/620", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1653", topicId: "bitmask", title: "Elevator Rides (Bitmask DP 2 trạng thái)", url: "https://cses.fi/problemset/task/1653", difficulty: "extreme", points: 300, platform: "cses" },
+
+  // Phase 2: Backtracking
+  { id: "m115", topicId: "backtracking", title: "Dãy nhị phân", url: "https://marisaoj.com/problem/115", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "m116", topicId: "backtracking", title: "Tập con của tập hợp", url: "https://marisaoj.com/problem/116", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "m117", topicId: "backtracking", title: "Hoán vị", url: "https://marisaoj.com/problem/117", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "m118", topicId: "backtracking", title: "Xếp quân hậu (N-Queens)", url: "https://marisaoj.com/problem/118", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m125", topicId: "backtracking", title: "Chia k nhóm tổng bằng nhau", url: "https://marisaoj.com/problem/125", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m128", topicId: "backtracking", title: "Đường đi quân mã (Knight Tour)", url: "https://marisaoj.com/problem/128", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m130", topicId: "backtracking", title: "Sudoku Solver · Nhánh cận", url: "https://marisaoj.com/problem/130", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1624", topicId: "backtracking", title: "Chessboard and Queens", url: "https://cses.fi/problemset/task/1624", difficulty: "medium", points: 100, platform: "cses" },
+
+  // Phase 2: Graph Basic (BFS · DFS · Grid · Topo)
+  { id: "m370", topicId: "graph-basic", title: "Số lượng thành phần liên thông", url: "https://marisaoj.com/problem/370", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "c1192", topicId: "graph-basic", title: "Counting Rooms (Đếm phòng Grid DFS)", url: "https://cses.fi/problemset/task/1192", difficulty: "easy", points: 60, platform: "cses" },
+  { id: "m371", topicId: "graph-basic", title: "Đường đi ngắn nhất không trọng số (BFS)", url: "https://marisaoj.com/problem/371", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1193", topicId: "graph-basic", title: "Labyrinth (BFS tìm và truy vết mê cung)", url: "https://cses.fi/problemset/task/1193", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m372", topicId: "graph-basic", title: "Mê cung ô vuông (Grid BFS)", url: "https://marisaoj.com/problem/372", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m373", topicId: "graph-basic", title: "Kiểm tra chu trình đồ thị (DFS)", url: "https://marisaoj.com/problem/373", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m375", topicId: "graph-basic", title: "Đồ thị hai phía (Bipartite Graph BFS)", url: "https://marisaoj.com/problem/375", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m385", topicId: "graph-basic", title: "Martian language 2 (Topo sort)", url: "https://marisaoj.com/problem/385", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m380", topicId: "graph-basic", title: "Số hòn đảo trên lưới (Connected Islands DFS)", url: "https://marisaoj.com/problem/380", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1666", topicId: "graph-basic", title: "Building Roads (DSU / DFS liên thông)", url: "https://cses.fi/problemset/task/1666", difficulty: "easy", points: 60, platform: "cses" },
+
+  // Phase 2: Shortest Path & MST
+  { id: "m388", topicId: "shortest-path", title: "Đường đi ngắn nhất (Dijkstra)", url: "https://marisaoj.com/problem/388", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1671", topicId: "shortest-path", title: "Shortest Routes I (Dijkstra kinh điển)", url: "https://cses.fi/problemset/task/1671", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m390", topicId: "shortest-path", title: "Cây khung nhỏ nhất (Kruskal MST)", url: "https://marisaoj.com/problem/390", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1672", topicId: "shortest-path", title: "Shortest Routes II (Floyd-Warshall all-pairs)", url: "https://cses.fi/problemset/task/1672", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m392", topicId: "shortest-path", title: "0-1 BFS đường đi chi phí nhỏ", url: "https://marisaoj.com/problem/392", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m180", topicId: "shortest-path", title: "Bye bye maximum edge", url: "https://marisaoj.com/problem/180", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m567", topicId: "shortest-path", title: "Teleport", url: "https://marisaoj.com/problem/567", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1673", topicId: "shortest-path", title: "High Score (Bellman-Ford chu trình âm)", url: "https://cses.fi/problemset/task/1673", difficulty: "hard", points: 180, platform: "cses" },
+
+  // Phase 2: Dynamic Programming (DP Basic)
+  { id: "c1633", topicId: "dp-basic", title: "Dice Combinations (DP cơ bản 1D)", url: "https://cses.fi/problemset/task/1633", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "c1634", topicId: "dp-basic", title: "Minimizing Coins (Đổi tiền ít xu nhất)", url: "https://cses.fi/problemset/task/1634", difficulty: "easy", points: 50, platform: "cses" },
+  { id: "v_lis", topicId: "dp-basic", title: "Dãy con tăng dài nhất (LIS)", url: "https://oj.vnoi.info/problem/lis", difficulty: "easy", points: 50, platform: "vnoj" },
+  { id: "c1158", topicId: "dp-basic", title: "Book Shop (0-1 Knapsack kinh điển)", url: "https://cses.fi/problemset/task/1158", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_nktick", topicId: "dp-basic", title: "Xếp hàng mua vé (DP 1D tối ưu)", url: "https://oj.vnoi.info/problem/nktick", difficulty: "easy", points: 50, platform: "vnoj" },
+  { id: "m713", topicId: "dp-basic", title: "Optimal subset", url: "https://marisaoj.com/problem/713", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1145", topicId: "dp-basic", title: "Increasing Subsequence (LIS O(N log N))", url: "https://cses.fi/problemset/task/1145", difficulty: "hard", points: 180, platform: "cses" },
+
+  // Phase 2: Range Query (Fenwick & Segment Tree)
+  { id: "m501", topicId: "range-query", title: "Point update, range sum (Fenwick/IT)", url: "https://marisaoj.com/problem/501", difficulty: "easy", points: 50, platform: "marisa" },
+  { id: "m502", topicId: "range-query", title: "Range Minimum Query (RMQ Segment Tree)", url: "https://marisaoj.com/problem/502", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "c1648", topicId: "range-query", title: "Dynamic Range Sum Queries (Fenwick)", url: "https://cses.fi/problemset/task/1648", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "c1649", topicId: "range-query", title: "Dynamic Range Minimum Queries (ST)", url: "https://cses.fi/problemset/task/1649", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m503", topicId: "range-query", title: "Cập nhật đoạn, truy vấn điểm", url: "https://marisaoj.com/problem/503", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m206", topicId: "range-query", title: "Đếm số cặp nghịch thế (Inversion Count)", url: "https://marisaoj.com/problem/206", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m505", topicId: "range-query", title: "Ước chung lớn nhất trên đoạn (Range GCD)", url: "https://marisaoj.com/problem/505", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m504", topicId: "range-query", title: "Range query (Point update, range sum)", url: "https://marisaoj.com/problem/504", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m205", topicId: "range-query", title: "Range update, range sum (Lazy ST)", url: "https://marisaoj.com/problem/205", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m204", topicId: "range-query", title: "Range update, minimum query (Lazy ST)", url: "https://marisaoj.com/problem/204", difficulty: "extreme", points: 300, platform: "marisa" },
+
+  // Phase 2: Strings
+  { id: "m168", topicId: "strings", title: "Compare substring (Rolling Hash)", url: "https://marisaoj.com/problem/168", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1753", topicId: "strings", title: "String Matching (KMP / Rolling Hash)", url: "https://cses.fi/problemset/task/1753", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "v_paliny", topicId: "strings", title: "Xâu đối xứng dài nhất (Paliny)", url: "https://oj.vnoi.info/problem/paliny", difficulty: "hard", points: 180, platform: "vnoj" },
+  { id: "c1731", topicId: "strings", title: "Word Combinations (Trie + DP)", url: "https://cses.fi/problemset/task/1731", difficulty: "hard", points: 180, platform: "cses" },
+  { id: "c2102", topicId: "strings", title: "Finding Patterns (Aho-Corasick / Trie)", url: "https://cses.fi/problemset/task/2102", difficulty: "extreme", points: 300, platform: "cses" },
+
+  // Phase 3: Trees & LCA
+  { id: "m381", topicId: "tree", title: "Duyệt cây & Chiều sâu (Tree Subtree size)", url: "https://marisaoj.com/problem/381", difficulty: "easy", points: 60, platform: "marisa" },
+  { id: "m382", topicId: "tree", title: "Đường kính của cây (Tree Diameter)", url: "https://marisaoj.com/problem/382", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "m383", topicId: "tree", title: "Tổ tiên chung gần nhất (LCA)", url: "https://marisaoj.com/problem/383", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1688", topicId: "tree", title: "Company Queries II (Binary Lifting LCA)", url: "https://cses.fi/problemset/task/1688", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m384", topicId: "tree", title: "Khoảng cách trên cây (Tree Distance via LCA)", url: "https://marisaoj.com/problem/384", difficulty: "medium", points: 100, platform: "marisa" },
+  { id: "c1130", topicId: "tree", title: "Tree Matching (Tree DP ghép cặp)", url: "https://cses.fi/problemset/task/1130", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "m386", topicId: "tree", title: "Euler Tour trên cây & Range query", url: "https://marisaoj.com/problem/386", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m387", topicId: "tree", title: "Quy hoạch động trên cây (Independent Set)", url: "https://marisaoj.com/problem/387", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "m389", topicId: "tree", title: "Đường đi dài nhất từ mỗi đỉnh (All Diameters)", url: "https://marisaoj.com/problem/389", difficulty: "hard", points: 180, platform: "marisa" },
+
+  // Phase 3: Advanced DP
+  { id: "m618", topicId: "advanced-dp", title: "Gifting (DP trạng thái phức hợp)", url: "https://marisaoj.com/problem/618", difficulty: "hard", points: 180, platform: "marisa" },
+  { id: "c1093", topicId: "advanced-dp", title: "Two Sets II (Chia 2 tập tổng bằng nhau)", url: "https://cses.fi/problemset/task/1093", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "c1746", topicId: "advanced-dp", title: "Array Description (DP lưới 2D)", url: "https://cses.fi/problemset/task/1746", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "c1140", topicId: "advanced-dp", title: "Projects (Rời rạc hóa + DP + BS)", url: "https://cses.fi/problemset/task/1140", difficulty: "hard", points: 180, platform: "cses" },
+  { id: "v_atcoder_dp_n", topicId: "advanced-dp", title: "Slimes (Interval DP / Matrix Chain)", url: "https://oj.vnoi.info/problem/atcoder_dp_n", difficulty: "hard", points: 180, platform: "vnoj" },
+  { id: "c2220", topicId: "advanced-dp", title: "Counting Numbers (Digit DP số không lặp)", url: "https://cses.fi/problemset/task/2220", difficulty: "extreme", points: 300, platform: "cses" },
+
+  // Phase 3: Mixed Problem Sets
+  { id: "v_olp21_ct_01", topicId: "mixed", title: "OLP 2021 Chuyên Tin - Bài 1 (Xâu & Dãy)", url: "https://oj.vnoi.info/problem/olp21_ct_01", difficulty: "medium", points: 100, platform: "vnoj" },
+  { id: "v_olp22_ct_01", topicId: "mixed", title: "OLP 2022 Chuyên Tin - Bài 1 (Toán rời rạc)", url: "https://oj.vnoi.info/problem/olp22_ct_01", difficulty: "medium", points: 100, platform: "vnoj" },
+  { id: "c1097", topicId: "mixed", title: "Removal Game (Game Theory DP)", url: "https://cses.fi/problemset/task/1097", difficulty: "medium", points: 100, platform: "cses" },
+  { id: "cf_1352e", topicId: "mixed", title: "Special Elements (Prefix Sum / Two Pointers)", url: "https://codeforces.com/problemset/problem/1352/E", difficulty: "medium", points: 100, platform: "codeforces" },
+  { id: "cf_1360e", topicId: "mixed", title: "Polygon (Grid Logic / Implementation)", url: "https://codeforces.com/problemset/problem/1360/E", difficulty: "easy", points: 60, platform: "codeforces" },
+
+  // Phase 3: Contest Simulation (OLP & ICPC)
+  { id: "v_olp21_kc_01", topicId: "contest", title: "OLP 2021 Không Chuyên - Bài 1", url: "https://oj.vnoi.info/problem/olp21_kc_01", difficulty: "easy", points: 60, platform: "vnoj" },
+  { id: "v_olp22_kc_02", topicId: "contest", title: "OLP 2022 Không Chuyên - Bài 2 (Tham lam)", url: "https://oj.vnoi.info/problem/olp22_kc_02", difficulty: "medium", points: 100, platform: "vnoj" },
+  { id: "v_olp23_kc_03", topicId: "contest", title: "OLP 2023 Không Chuyên - Bài 3 (Đồ thị)", url: "https://oj.vnoi.info/problem/olp23_kc_03", difficulty: "hard", points: 180, platform: "vnoj" },
+  { id: "v_olp21_ct_02", topicId: "contest", title: "OLP 2021 Chuyên Tin - Bài 2 (DP nâng cao)", url: "https://oj.vnoi.info/problem/olp21_ct_02", difficulty: "hard", points: 180, platform: "vnoj" },
+  { id: "v_olp22_ct_03", topicId: "contest", title: "OLP 2022 Chuyên Tin - Bài 3 (Cấu trúc dữ liệu)", url: "https://oj.vnoi.info/problem/olp22_ct_03", difficulty: "extreme", points: 300, platform: "vnoj" }
 ];
 
 const DIFFICULTY = {
@@ -350,9 +523,22 @@ const TEMPLATE_VARIANTS = {
     { id: "inclusion", name: "Inclusion–Exclusion", when: "Đếm phần tử thuộc ít nhất một trong vài tập điều kiện.", invariant: "Cộng giao lẻ, trừ giao chẵn.", code: `ll cnt=0;\nfor(int mask=1;mask<(1<<m);++mask){\n ll l=1; int bits=0;\n for(int i=0;i<m;++i) if(mask>>i&1){ l=lcm(l,v[i]); ++bits; }\n cnt += (bits&1 ? x/l : -x/l);\n}`, trap: "Chặn LCM vượt x/overflow; số tập lớn làm 2^m không khả thi." },
     { id: "divisors", name: "Duyệt ước", when: "Cần liệt kê/đếm ước của một số đơn lẻ.", invariant: "Mỗi ước d≤sqrt(n) ghép với n/d.", code: `vector<ll> divs;\nfor(ll d=1;d*d<=n;++d) if(n%d==0){\n divs.push_back(d);\n if(d*d!=n) divs.push_back(n/d);\n}\nsort(divs.begin(),divs.end());`, trap: "Không thêm n/d hai lần khi d*d=n." }
   ],
+  "bitmask": [
+    { id: "bit-basics", name: "Thao tác Bit cơ bản", when: "Bật, tắt, đảo bit và đếm số bit 1 trong O(1).", invariant: "Bit thứ i đại diện cho sự hiện diện (0 hoặc 1) của phần tử i.", code: `// Bật bit i: mask |= (1 << i);\n// Tắt bit i: mask &= ~(1 << i);\n// Đảo bit i: mask ^= (1 << i);\n// Kiểm tra bit i: if ((mask >> i) & 1)\n// Đếm số bit 1: __builtin_popcountll(mask);\n// Bit nhỏ nhất bật (lowbit): mask & (-mask);`, trap: "Dịch quá 31 bit với số 1 int thông thường (1 << i tràn khi i>=31), cần dùng 1ULL << i. Thứ tự ưu tiên phép toán: luôn dùng ngoặc (mask >> i) & 1." },
+    { id: "submask", name: "Duyệt Submask O(3ⁿ)", when: "Cần duyệt qua tất cả tập con (submask) của một mask hoặc của mọi mask.", invariant: "sub = (sub - 1) & mask luôn sinh ra submask tiếp theo giảm dần.", code: `// Duyệt tất cả submask của mask:\nfor (int sub = mask; sub > 0; sub = (sub - 1) & mask) {\n  // xử lý submask 'sub' không rỗng\n}\n// Duyệt submask của mọi mask (tổng O(3^n)):\nfor (int mask = 0; mask < (1 << n); ++mask) {\n  for (int sub = mask; sub > 0; sub = (sub - 1) & mask) {\n    // dp[mask] = min/max(... dp[sub] ...)\n  }\n}`, trap: "sub = (sub - 1) & mask sẽ dừng ở sub = 0; nếu bài toán tính cả submask rỗng (sub = 0), cần xử lý riêng hoặc dùng vòng do...while." },
+    { id: "bitmask-dp", name: "Quy hoạch động Bitmask (TSP / Gán việc)", when: "n nhỏ (n ≤ 20), trạng thái biểu diễn tập các phần tử đã được chọn hoặc thăm.", invariant: "dp[mask][u] là chi phí tối ưu khi tập đỉnh đã thăm là mask và hiện đang ở u.", code: `vector<vector<ll>> dp(1 << n, vector<ll>(n, INF));\ndp[1][0] = 0; // bắt đầu tại đỉnh 0, mask = 1 (bit 0 bật)\nfor (int mask = 1; mask < (1 << n); ++mask) {\n  for (int u = 0; u < n; ++u) {\n    if (!(mask >> u & 1) || dp[mask][u] == INF) continue;\n    for (int v = 0; v < n; ++v) {\n      if (!(mask >> v & 1)) {\n        int nextMask = mask | (1 << v);\n        dp[nextMask][v] = min(dp[nextMask][v], dp[mask][u] + dist[u][v]);\n      }\n    }\n  }\n}`, trap: "Thứ tự vòng lặp phải tăng dần theo mask để đảm bảo tính chất topo của DAG trạng thái." },
+    { id: "xor-properties", name: "Tính chất XOR", when: "Tìm số lẻ lần, khử trùng lặp, bài toán Nim game hoặc Basis tuyến tính.", invariant: "x ^ x = 0 và x ^ 0 = x; phép XOR có tính kết hợp và giao hoán.", code: `// Tìm 1 số duy nhất xuất hiện lẻ lần:\nint singleNumber(const vector<int>& a) {\n  int xorSum = 0;\n  for (int x : a) xorSum ^= x;\n  return xorSum;\n}\n// Tách 2 số xuất hiện lẻ lần a và b:\n// diff = xorSum & (-xorSum); // lấy bit 1 khác biệt\n// Nhóm mảng theo bit diff bật/tắt`, trap: "Toán tử ^ có độ ưu tiên thấp hơn các phép so sánh ==, !=; luôn viết (a ^ b) == c." }
+  ],
+  "backtracking": [
+    { id: "binary-subsets", name: "Sinh nhị phân / Tập con", when: "Liệt kê 2ⁿ cấu hình hoặc xét chọn/bỏ từng phần tử.", invariant: "a[0..i-1] đã được chốt giá trị 0 hoặc 1.", code: `void gen(int i){\n if(i==n){ printAns(); return; }\n a[i]=0; gen(i+1);\n a[i]=1; gen(i+1);\n}`, trap: "Base case là i==n, không phải i==n-1." },
+    { id: "permutation", name: "Hoán vị & Tổ hợp", when: "Liệt kê n! hoán vị hoặc chọn k phần tử từ n.", invariant: "Mảng used[val] đánh dấu phần tử đã dùng trong hoán vị hiện tại.", code: `void perm(int i){\n if(i==n){ printAns(); return; }\n for(int v=1;v<=n;++v) if(!used[v]){\n  used[v]=true; a[i]=v;\n  perm(i+1);\n  used[v]=false; // backtrack\n }\n}`, trap: "Quên used[v]=false làm nhánh sau không dùng lại được giá trị." },
+    { id: "n-queens", name: "N-Queens & Cắt tỉa", when: "Bài toán xếp quân cờ hoặc ghép cặp có xung đột đường chéo/hàng/cột.", invariant: "Không có 2 phần tử nào cùng hàng, cột hoặc đường chéo.", code: `void solve(int r){\n if(r==n){ ++ans; return; }\n for(int c=0;c<n;++c) if(!col[c] && !d1[r-c+n] && !d2[r+c]){\n  col[c]=d1[r-c+n]=d2[r+c]=true;\n  solve(r+1);\n  col[c]=d1[r-c+n]=d2[r+c]=false;\n }\n}`, trap: "Chỉ số d1 có thể âm: r-c, phải cộng offset +n." },
+    { id: "branch-bound", name: "Nhánh cận tối ưu", when: "Tìm cấu hình có chi phí nhỏ nhất/lớn nhất, dừng nhánh sớm khi không thể tốt hơn.", invariant: "bestAns lưu nghiệm tốt nhất đã tìm thấy.", code: `void search(int i, ll currentCost){\n if(currentCost >= bestAns) return; // Pruning!\n if(i==n){ bestAns = currentCost; return; }\n for(auto next : options){\n  search(i+1, currentCost + cost(i, next));\n }\n}`, trap: "Chỉ cắt tỉa được khi chi phí không âm (monotonic) hoặc có cận dưới/trên chặt." }
+  ],
   "graph-basic": [
-    { id: "bfs", name: "BFS", when: "Khoảng cách ít cạnh nhất hoặc duyệt theo lớp trên graph không trọng số.", invariant: "Khi một đỉnh được push lần đầu, dist của nó đã tối ưu.", code: `queue<int> q; vector<int> dist(n,-1);\ndist[s]=0; q.push(s);\nwhile(!q.empty()){\n int u=q.front(); q.pop();\n for(int v:adj[u]) if(dist[v]==-1){dist[v]=dist[u]+1;q.push(v);}\n}`, trap: "Đánh dấu khi push, không chờ đến lúc pop." },
-    { id: "dfs", name: "DFS", when: "Thành phần liên thông, subtree, backtracking trên graph/cây.", invariant: "Mỗi đỉnh được vào đúng một lần trong một lượt duyệt.", code: `void dfs(int u){\n vis[u]=true;\n for(int v:adj[u]) if(!vis[v]) dfs(v);\n}`, trap: "Graph sâu có thể tràn stack; graph vô hướng phải tránh đi lại parent/visited." },
+    { id: "bfs", name: "BFS Đồ thị", when: "Khoảng cách ít cạnh nhất hoặc duyệt theo lớp trên graph không trọng số.", invariant: "Khi một đỉnh được push lần đầu, dist của nó đã tối ưu.", code: `queue<int> q; vector<int> dist(n,-1);\ndist[s]=0; q.push(s);\nwhile(!q.empty()){\n int u=q.front(); q.pop();\n for(int v:adj[u]) if(dist[v]==-1){dist[v]=dist[u]+1;q.push(v);}\n}`, trap: "Đánh dấu khi push, không chờ đến lúc pop." },
+    { id: "grid-bfs", name: "BFS Lưới ô vuông (Grid)", when: "Tìm đường đi ngắn nhất trên ma trận m×n có chướng ngại vật.", invariant: "dist[x][y] là số bước ít nhất từ ô xuất phát.", code: `const int dx[]={-1,1,0,0}, dy[]={0,0,-1,1};\nqueue<pair<int,int>> q; q.push({sx,sy}); dist[sx][sy]=0;\nwhile(!q.empty()){\n auto [x,y]=q.front(); q.pop();\n for(int i=0;i<4;++i){\n  int nx=x+dx[i], ny=y+dy[i];\n  if(nx>=0&&nx<n&&ny>=0&&ny<m && grid[nx][ny]!='#' && dist[nx][ny]==-1){\n   dist[nx][ny]=dist[x][y]+1; q.push({nx,ny});\n  }\n }\n}`, trap: "Quên kiểm tra biên ma trận nx>=0&&nx<n&&ny>=0&&ny<m trước khi truy cập grid." },
+    { id: "dfs", name: "DFS Liên thông & Chu trình", when: "Thành phần liên thông, tìm chu trình, subtree trên đồ thị/cây.", invariant: "Mỗi đỉnh được vào đúng một lần trong một lượt duyệt.", code: `void dfs(int u){\n vis[u]=true;\n for(int v:adj[u]) if(!vis[v]) dfs(v);\n}`, trap: "Graph sâu có thể tràn stack; graph vô hướng phải tránh đi lại parent/visited." },
     { id: "topo", name: "Topological Sort", when: "Quan hệ phụ thuộc trên DAG, cần thứ tự sao cho u trước v với mọi cạnh u→v.", invariant: "Queue chỉ chứa đỉnh có indegree còn lại bằng 0.", code: `queue<int> q;\nfor(int i=0;i<n;++i) if(indeg[i]==0) q.push(i);\nwhile(!q.empty()){\n int u=q.front();q.pop(); order.push_back(u);\n for(int v:adj[u]) if(--indeg[v]==0) q.push(v);\n}`, trap: "Nếu order.size()<n thì graph có chu trình, không có topo đầy đủ." }
   ],
   "shortest-path": [
@@ -367,9 +553,11 @@ const TEMPLATE_VARIANTS = {
     { id: "state-machine", name: "DP trạng thái", when: "Mỗi vị trí có vài trạng thái như cầm/không cầm, đã dùng/chưa dùng quyền.", invariant: "dp[i][state] chứa toàn bộ thông tin quá khứ cần cho tương lai.", code: `for(int i=0;i<n;++i){\n for(int st=0;st<S;++st) if(dp[i][st]!=INF){\n  for(auto [nst,cost]:trans(i,st))\n   dp[i+1][nst]=min(dp[i+1][nst],dp[i][st]+cost);\n }\n}`, trap: "Thiếu một chiều state làm mất thông tin; thừa state làm độ phức tạp nổ." }
   ],
   "range-query": [
-    { id: "fenwick", name: "Fenwick Tree", when: "Point update + prefix/range sum, cần code ngắn O(log n).", invariant: "bit[i] lưu tổng một đoạn có độ dài lowbit(i) trong chỉ số 1-based.", code: `void add(int i,ll v){for(++i;i<=n;i+=i&-i)bit[i]+=v;}\nll sum(int i){ll s=0;for(++i;i>0;i-=i&-i)s+=bit[i];return s;}\nll range(int l,int r){return sum(r)-sum(l-1);}`, trap: "Update giá trị mới phải truyền delta=new-old; đừng lẫn 0-based ngoài và 1-based trong." },
-    { id: "segment-point", name: "Segment Tree cơ bản", when: "Point update + range query với phép gộp kết hợp như sum/min/max.", invariant: "Mỗi node lưu merge của đúng đoạn mà nó đại diện.", code: `void update(int p,ll v,int x,int l,int r){\n if(l==r){st[x]=v;return;} int m=(l+r)/2;\n if(p<=m)update(p,v,2*x,l,m); else update(p,v,2*x+1,m+1,r);\n st[x]=merge(st[2*x],st[2*x+1]);\n}`, trap: "Giá trị neutral của query phải đúng phép: 0 cho sum, INF cho min, -INF cho max." },
-    { id: "lazy", name: "Lazy Propagation", when: "Range update + range query mà cập nhật từng phần tử quá chậm.", invariant: "lazy[x] là cập nhật chưa đẩy xuống con nhưng đã phản ánh đúng ở st[x].", code: `void apply(int x,int l,int r,ll v){st[x]+=v*(r-l+1);lazy[x]+=v;}\nvoid push(int x,int l,int r){\n if(!lazy[x]||l==r)return; int m=(l+r)/2;\n apply(2*x,l,m,lazy[x]); apply(2*x+1,m+1,r,lazy[x]); lazy[x]=0;\n}`, trap: "Công thức apply phụ thuộc loại update/query; range add+sum khác range assign+min." }
+    { id: "fenwick", name: "Fenwick Tree (BIT cơ bản)", when: "Point update + prefix/range sum, cần code ngắn O(log n).", invariant: "bit[i] lưu tổng một đoạn có độ dài lowbit(i) trong chỉ số 1-based.", code: `void add(int i,ll v){for(++i;i<=n;i+=i&-i)bit[i]+=v;}\nll sum(int i){ll s=0;for(++i;i>0;i-=i&-i)s+=bit[i];return s;}\nll range(int l,int r){return sum(r)-sum(l-1);}`, trap: "Update giá trị mới phải truyền delta=new-old; đừng lẫn 0-based ngoài và 1-based trong." },
+    { id: "segment-point", name: "Segment Tree cơ bản", when: "Point update + range query với phép gộp kết hợp như sum/min/max/gcd.", invariant: "Mỗi node lưu merge của đúng đoạn mà nó đại diện.", code: `void update(int p,ll v,int x,int l,int r){\n if(l==r){st[x]=v;return;} int m=(l+r)/2;\n if(p<=m)update(p,v,2*x,l,m); else update(p,v,2*x+1,m+1,r);\n st[x]=merge(st[2*x],st[2*x+1]);\n}`, trap: "Giá trị neutral của query phải đúng phép: 0 cho sum, INF cho min, -INF cho max." },
+    { id: "lazy", name: "Lazy Propagation (Segment Tree)", when: "Range update + range query mà cập nhật từng phần tử quá chậm.", invariant: "lazy[x] là cập nhật chưa đẩy xuống con nhưng đã phản ánh đúng ở st[x].", code: `void apply(int x,int l,int r,ll v){st[x]+=v*(r-l+1);lazy[x]+=v;}\nvoid push(int x,int l,int r){\n if(!lazy[x]||l==r)return; int m=(l+r)/2;\n apply(2*x,l,m,lazy[x]); apply(2*x+1,m+1,r,lazy[x]); lazy[x]=0;\n}`, trap: "Công thức apply phụ thuộc loại update/query; range add+sum khác range assign+min." },
+    { id: "inversion", name: "Đếm cặp nghịch thế (Fenwick / BIT)", when: "Đếm số cặp (i < j mà a[i] > a[j]) trong O(N log N).", invariant: "Fenwick lưu tần số các phần tử đã duyệt qua; nén tọa độ nếu a[i] lớn.", code: `// Nén tọa độ a[i] về [1, m]\nll invCount = 0;\nfor (int i = n - 1; i >= 0; --i) {\n  invCount += sum(a[i] - 1); // số phần tử bên phải nhỏ hơn a[i]\n  add(a[i], 1);\n}`, trap: "Giá trị a[i] phải > 0 để làm chỉ số Fenwick; nếu a[i] lớn phải nén tọa độ (coordinate compression) trước." },
+    { id: "fenwick-range", name: "Fenwick cập nhật đoạn, hỏi điểm", when: "Thao tác cộng v lên đoạn [l, r] và truy vấn giá trị tại điểm p.", invariant: "Mảng hiệu diff[i] = a[i] - a[i-1]; giá trị a[p] là tổng tiền tố của diff.", code: `// Range update [l, r] += v:\nauto rangeAdd = [&](int l, int r, ll v) {\n  add(l, v);\n  add(r + 1, -v);\n};\n// Point query tại p:\nll val = sum(p);`, trap: "Chỉ áp dụng khi cần truy vấn tại 1 điểm; nếu cần cả range update và range sum thì dùng 2 cây Fenwick hoặc Segment Tree Lazy." }
   ],
   "strings": [
     { id: "kmp", name: "KMP / Prefix Function", when: "Tìm pattern trong text hoặc xử lý border của chuỗi.", invariant: "pi[i] là độ dài border dài nhất của s[0..i].", code: `vector<int> pi(n);\nfor(int i=1;i<n;++i){int j=pi[i-1];\n while(j&&s[i]!=s[j])j=pi[j-1];\n if(s[i]==s[j])++j; pi[i]=j;\n}`, trap: "Khi mismatch lùi j=pi[j-1], không phải j--." },
@@ -378,6 +566,7 @@ const TEMPLATE_VARIANTS = {
   ],
   "tree": [
     { id: "subtree", name: "DFS Subtree", when: "Cần size/tổng/DP của mỗi cây con.", invariant: "Sau khi xử lý mọi con v, giá trị của u được gộp đầy đủ.", code: `void dfs(int u,int p){\n sz[u]=1;\n for(int v:adj[u])if(v!=p){\n  dfs(v,u); sz[u]+=sz[v];\n }\n}`, trap: "Phải tránh parent; cây dây sâu có thể cần DFS iterative." },
+    { id: "diameter", name: "Đường kính cây (Tree Diameter)", when: "Tìm khoảng cách lớn nhất giữa hai đỉnh bất kỳ trên cây không có trọng số âm.", invariant: "Đỉnh xa nhất tính từ một đỉnh bất kỳ luôn là một đầu mút của đường kính.", code: `// 2 lần BFS/DFS:\nauto bfs = [&](int start) {\n  vector<int> dist(n + 1, -1);\n  queue<int> q;\n  q.push(start); dist[start] = 0;\n  int farNode = start;\n  while (!q.empty()) {\n    int u = q.front(); q.pop();\n    if (dist[u] > dist[farNode]) farNode = u;\n    for (int v : adj[u]) if (dist[v] == -1) {\n      dist[v] = dist[u] + 1; q.push(v);\n    }\n  }\n  return pair{farNode, dist[farNode]};\n};\nauto [u, _] = bfs(1);\nauto [v, diameter] = bfs(u);`, trap: "Phương pháp 2 lần BFS/DFS chỉ đúng với cây có trọng số không âm; nếu có trọng số âm phải dùng Tree DP." },
     { id: "euler", name: "Euler Tour", when: "Biến toàn bộ subtree thành một đoạn để dùng Fenwick/segment tree.", invariant: "Các đỉnh trong subtree(u) nằm liên tiếp ở [tin[u],tout[u]].", code: `void dfs(int u,int p){\n tin[u]=timer++;\n for(int v:adj[u])if(v!=p)dfs(v,u);\n tout[u]=timer-1;\n}`, trap: "Có nhiều kiểu Euler tour; phải biết đang lưu mỗi đỉnh một lần hay cả lúc vào/ra." },
     { id: "lca", name: "LCA Binary Lifting", when: "Nhiều truy vấn tổ tiên chung/khoảng cách trên cây tĩnh.", invariant: "up[v][j] là tổ tiên cách v đúng 2^j cạnh.", code: `for(int j=1;j<LOG;++j)up[v][j]=up[up[v][j-1]][j-1];\nfor(int j=LOG-1;j>=0;--j)\n if(depth[up[u][j]]>=depth[v])u=up[u][j];`, trap: "Cần quy ước parent của root an toàn và LOG đủ lớn cho n." }
   ],
@@ -399,6 +588,7 @@ const TEMPLATE_VARIANTS = {
 };
 
 const STORAGE_KEY = "olp2026-tracker-v1";
+const STATE_SCHEMA_VERSION = 2;
 
 function makeId() {
   return globalThis.crypto?.randomUUID?.() || `olp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -406,6 +596,7 @@ function makeId() {
 
 function initialState() {
   return {
+    schemaVersion: STATE_SCHEMA_VERSION,
     topics: Object.fromEntries(TOPICS.map((topic) => [topic.id, { solved: 0, confidence: 1, complete: false }])),
     checks: {},
     exercises: {},
@@ -431,13 +622,14 @@ function loadState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved) return initialState();
     const base = initialState();
+    const migrated = migrateState(saved);
     return {
       ...base,
-      ...saved,
+      ...migrated,
       topics: Object.fromEntries(TOPICS.map((topic) => [topic.id, { ...base.topics[topic.id], ...(saved.topics?.[topic.id] || {}) }])),
       sessions: Array.isArray(saved.sessions) ? saved.sessions : [],
       mocks: Array.isArray(saved.mocks) ? saved.mocks : [],
-      errors: Array.isArray(saved.errors) ? saved.errors : [],
+      errors: Array.isArray(saved.errors) ? saved.errors.map((error) => ({ status: "open", ...error })) : [],
       aiCodeReviews: Array.isArray(saved.aiCodeReviews) ? saved.aiCodeReviews : [],
       aiReasoningReviews: Array.isArray(saved.aiReasoningReviews) ? saved.aiReasoningReviews : [],
       reviews: saved.reviews || {},
@@ -451,9 +643,26 @@ function loadState() {
   }
 }
 
+function migrateState(saved) {
+  const fallbackTime = saved.updatedAt || new Date().toISOString();
+  const migrated = { ...saved, schemaVersion: STATE_SCHEMA_VERSION };
+  migrated.topics = Object.fromEntries(TOPICS.map((topic) => {
+    const value = { ...(saved.topics?.[topic.id] || {}) };
+    value.updatedAt ||= fallbackTime;
+    return [topic.id, value];
+  }));
+  migrated.errors = Array.isArray(saved.errors)
+    ? saved.errors.map((error) => ({ status: "open", attempts: 0, ...error }))
+    : [];
+  return migrated;
+}
+
 let state = loadState();
 let activePhase = "all";
 let activeExerciseFilter = "all";
+let activePlatformFilter = "all";
+let exerciseSearchQuery = "";
+let currentActiveTab = "dashboard";
 let toastTimer;
 
 const $ = (selector) => document.querySelector(selector);
@@ -504,6 +713,11 @@ function phaseProgress(phaseId) {
 function totalReadiness() {
   const weights = { 1: 0.38, 2: 0.39, 3: 0.23 };
   return PHASES.reduce((sum, phase) => sum + phaseProgress(phase.id) * weights[phase.id], 0);
+}
+
+function isTopicUnlocked(topic) {
+  if (topic.phase === 1) return true;
+  return phaseProgress(topic.phase - 1) >= 0.6;
 }
 
 function getRecommendation() {
@@ -581,7 +795,7 @@ function topicMastery(topic) {
 function topicPriority(topic) {
   const masteryGap = 1 - topicMastery(topic);
   const review = reviewInfo(topic.id);
-  const errors = state.errors.filter((e) => e.topicId === topic.id && daysSince(e.createdAt) <= 21).length;
+  const errors = state.errors.filter((e) => e.status !== "resolved" && e.topicId === topic.id && daysSince(e.createdAt) <= 21).length;
   const activity = state.sessions.filter((s) => s.topicId === topic.id).length;
   return masteryGap * 60 + (review.due ? 24 : 0) + Math.min(errors * 8, 24) + (activity ? 0 : 8);
 }
@@ -645,7 +859,7 @@ function renderTrainingIntelligence() {
   const recent = [...state.errors].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,4);
   $("#errorInsights").innerHTML = recent.length ? recent.map((e) => {
     const topic = TOPICS.find((t)=>t.id===e.topicId);
-    return `<div class="insight-item"><strong>${escapeHTML(topic?.name || "Topic")}</strong><small>${escapeHTML(e.note || "Chưa có mô tả")}</small><span class="error-chip">${escapeHTML(typeLabel[e.type] || e.type)}</span></div>`;
+    return `<div class="insight-item ${e.status === "resolved" ? "resolved" : ""}"><strong>${escapeHTML(topic?.name || "Topic")}</strong><small>${escapeHTML(e.note || "Chưa có mô tả")}</small><span class="error-chip">${escapeHTML(typeLabel[e.type] || e.type)} · ${e.status === "resolved" ? "Đã sửa" : `Đang mở · ${Number(e.attempts || 0)} lần làm lại`}</span>${e.status !== "resolved" ? `<button type="button" class="text-button" data-reattempt-error="${e.id}">Làm lại</button><button type="button" class="text-button" data-resolve-error="${e.id}">Đã sửa</button>` : ""}</div>`;
   }).join("") : '<div class="insight-item"><strong>Chưa có lỗi được ghi</strong><small>Khi WA/TLE hoặc bí pattern, ghi một dòng để Smart Coach dùng cho lần ôn sau.</small></div>';
 
   const due = TOPICS.map((topic) => ({ topic, info: reviewInfo(topic.id) })).filter((item)=>item.info.due).sort((a,b)=>topicPriority(b.topic)-topicPriority(a.topic));
@@ -687,26 +901,92 @@ function switchModeVisualOnly() {
 }
 
 function buildQuickReview() {
-  const dueTopics = TOPICS.map((topic)=>({topic,info:reviewInfo(topic.id),priority:topicPriority(topic)})).filter((x)=>x.info.due || state.errors.some((e)=>e.topicId===x.topic.id && daysSince(e.createdAt)<21)).sort((a,b)=>b.priority-a.priority).slice(0,8);
-  const source = dueTopics.length ? dueTopics : smartCoach().ranked.slice(0,4).map((x)=>({topic:x.topic}));
-  quickReviewCards = source.map(({topic})=>{
+  const dueTopics = TOPICS.map((topic)=>({topic,info:reviewInfo(topic.id),priority:topicPriority(topic)})).filter((x)=>x.info.due || state.errors.some((e)=>e.status !== "resolved" && e.topicId===x.topic.id && daysSince(e.createdAt)<21)).sort((a,b)=>b.priority-a.priority).slice(0,8);
+  const source = dueTopics.length ? dueTopics : smartCoach().ranked.slice(0,6).map((x)=>({topic:x.topic}));
+
+  quickReviewCards = [];
+
+  source.forEach(({topic}) => {
     const lesson = LESSONS[topic.id];
-    const errors = state.errors.filter((e)=>e.topicId===topic.id).slice(-2).map((e)=>e.note).filter(Boolean);
-    return { topicId:topic.id, code:topic.code, title:topic.name, prompt: lesson?.recognise?.[0] || topic.note, answer: errors.length ? `Lỗi của bạn: ${errors.join(" · ")}` : (lesson?.mistakes?.[0] || lesson?.goal || topic.note) };
+    const userErrors = state.errors.filter((e) => e.status !== "resolved" && e.topicId === topic.id);
+
+    quickReviewCards.push({
+      type: "invariant",
+      topicId: topic.id,
+      code: topic.code,
+      title: `${topic.name} · Nhận dạng`,
+      prompt: lesson?.recognise?.join(" • ") || `Khi nào nhận diện bài toán thuộc chủ đề ${topic.name}?`,
+      answerTitle: "INVARIANT & BẪY THƯỜNG GẶP",
+      answer: `${lesson?.goal || topic.note}\n\n⚠️ Bẫy: ${lesson?.mistakes?.[0] || 'Lưu ý kiểm tra tràn số và điều kiện biên.'}`
+    });
+
+    if (userErrors.length) {
+      const e = userErrors[userErrors.length - 1];
+      quickReviewCards.push({
+        type: "mistake",
+        topicId: topic.id,
+        code: "BUG",
+        title: `Lỗi cũ: ${topic.name} (${e.type})`,
+        prompt: `Bạn từng ghi nhận lỗi: "${e.note}". Nguyên nhân gốc và cách phòng ngừa là gì?`,
+        answerTitle: "BÀI HỌC CỐT LÕI",
+        answer: `Cần viết checklist kiểm tra trước khi nộp bài: Kiểm tra test N=1, tràn số int64, và invariant cửa sổ/đồ thị.`
+      });
+    }
   });
-  quickReviewIndex = clamp(quickReviewIndex,0,Math.max(0,quickReviewCards.length-1));
+
+  if (!quickReviewCards.length) {
+    quickReviewCards = TOPICS.slice(0, 4).map(topic => {
+      const lesson = LESSONS[topic.id];
+      return {
+        type: "invariant",
+        topicId: topic.id,
+        code: topic.code,
+        title: `${topic.name} · Invariant`,
+        prompt: lesson?.recognise?.[0] || topic.note,
+        answerTitle: "ĐIỂM CỐT LÕI",
+        answer: lesson?.mistakes?.[0] || lesson?.goal || topic.note
+      };
+    });
+  }
+
+  quickReviewIndex = clamp(quickReviewIndex, 0, Math.max(0, quickReviewCards.length - 1));
   renderQuickReview();
 }
 
 function renderQuickReview() {
   const card = quickReviewCards[quickReviewIndex];
   if (!card || !$("#flashcard")) return;
-  $("#quickReviewCount").textContent = `${quickReviewIndex+1}/${quickReviewCards.length}`;
+  if ($("#quickReviewCount")) $("#quickReviewCount").textContent = `${quickReviewIndex+1}/${quickReviewCards.length}`;
+  if ($("#quickReviewDeckType")) $("#quickReviewDeckType").textContent = card.type === "mistake" ? "Sổ lỗi" : "Invariant";
   $("#flashcardCode").textContent = card.code;
   $("#flashcardTitle").textContent = card.title;
   $("#flashcardPrompt").textContent = card.prompt;
+  if ($("#flashcardAnswerTitle")) $("#flashcardAnswerTitle").textContent = card.answerTitle || "Điểm cốt lõi";
   $("#flashcardAnswer").textContent = card.answer;
   $("#flashcard").classList.remove("revealed");
+}
+
+function handleSM2Rating(quality) {
+  const card = quickReviewCards[quickReviewIndex];
+  if (!card) return;
+  const current = state.reviews?.[card.topicId] || { level: 0 };
+  let nextLevel = Number(current.level || 0);
+
+  if (quality === 'again') {
+    nextLevel = 0;
+  } else if (quality === 'hard') {
+    nextLevel = Math.max(0, nextLevel - 1);
+  } else if (quality === 'good') {
+    nextLevel = Math.min(REVIEW_INTERVALS.length - 1, nextLevel + 1);
+  } else if (quality === 'easy') {
+    nextLevel = Math.min(REVIEW_INTERVALS.length - 1, nextLevel + 2);
+  }
+
+  const days = REVIEW_INTERVALS[nextLevel] || 1;
+  state.reviews[card.topicId] = { level: nextLevel, lastReviewedAt: new Date().toISOString() };
+  saveState(`Đã xếp lịch ôn ${card.code}: sau ${days} ngày`);
+  renderTrainingIntelligence();
+  nextQuickCard();
 }
 
 function nextQuickCard() {
@@ -737,7 +1017,15 @@ function getSupabaseConfig() {
       localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url: cleanUrl, anonKey: cKey }));
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-    return JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY)) || null;
+    const saved = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY));
+    const defaults = window.__SUPABASE_CONFIG__;
+    if (saved?.url && saved?.anonKey) return saved;
+    if (defaults?.url && defaults?.anonKey) {
+      const config = { url: defaults.url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, ""), anonKey: defaults.anonKey };
+      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(config));
+      return config;
+    }
+    return null;
   } catch { return null; }
 }
 
@@ -757,26 +1045,119 @@ async function bootstrapCloud() {
   try {
     const { data } = await client.auth.getSession();
     cloudUser = data.session?.user || null;
+    if (!cloudUser) {
+      const { data: anonymousData, error } = await client.auth.signInAnonymously();
+      if (error) throw error;
+      cloudUser = anonymousData.user || null;
+    }
   } catch { cloudUser = null; }
   updateCloudUI();
   if (cloudUser) performCloudSync();
 }
 
+function switchAuthTab(tabName) {
+  document.querySelectorAll(".auth-tab-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.authTab === tabName);
+  });
+  document.querySelectorAll(".auth-tab-pane").forEach((pane) => {
+    pane.classList.add("hidden");
+  });
+  const targetPane = $(`#authPane${tabName === "signin" ? "SignIn" : (tabName === "signup" ? "SignUp" : "Config")}`);
+  if (targetPane) targetPane.classList.remove("hidden");
+}
+
 function updateCloudUI() {
-  const button=$("#cloudSyncButton"); if(!button) return;
-  const configured=Boolean(getSupabaseConfig());
-  button.title = cloudUser ? `Cloud: ${cloudUser.email || "đã đăng nhập"}` : (configured ? "Đăng nhập / đồng bộ Supabase" : "Cấu hình Supabase Sync");
-  button.classList.toggle("cloud-on", Boolean(cloudUser));
-  const status=$("#cloudAuthStatus"); if(status) status.textContent = cloudUser ? `Đã đăng nhập: ${cloudUser.email || cloudUser.id}` : (configured ? "Đã lưu cấu hình Supabase · chưa đăng nhập" : "Chưa cấu hình Supabase");
-  const aiStatus=$("#aiCoachStatus"); if(aiStatus) aiStatus.textContent = cloudUser ? "AI Coach sẵn sàng" : "Cần đăng nhập Supabase";
-  const codeStatus=$("#codeReviewStatus"); if(codeStatus) codeStatus.textContent = cloudUser ? "Sẵn sàng" : "Đăng nhập Supabase để bắt đầu";
+  const button = $("#cloudSyncButton");
+  const configured = Boolean(getSupabaseConfig());
+  if (button) {
+    button.title = cloudUser ? `Cloud: ${cloudUser.email || "đã đăng nhập"}` : (configured ? "Đăng nhập / đồng bộ Supabase" : "Cấu hình Supabase Sync");
+    button.classList.toggle("cloud-on", Boolean(cloudUser));
+  }
+
+  // Header auth button
+  const headerBtn = $("#headerAuthButton");
+  const headerDot = $("#headerAuthDot");
+  const headerIcon = $("#headerAuthIcon");
+  const headerText = $("#headerAuthText");
+  if (headerBtn) {
+    if (cloudUser) {
+      headerBtn.classList.add("logged-in");
+      if (headerDot) headerDot.classList.add("online");
+      if (headerIcon) headerIcon.textContent = "👤";
+    const name = cloudUser.is_anonymous ? "Khách" : ((cloudUser.email || "").split("@")[0] || "Tài khoản");
+      if (headerText) headerText.textContent = name;
+    } else {
+      headerBtn.classList.remove("logged-in");
+      if (headerDot) headerDot.classList.remove("online");
+      if (headerIcon) headerIcon.textContent = "☁️";
+      if (headerText) headerText.textContent = "Đăng nhập";
+    }
+  }
+
+  // Modal views
+  const guestView = $("#authGuestView");
+  const userView = $("#authUserView");
+  if (guestView && userView) {
+    guestView.classList.toggle("hidden", Boolean(cloudUser));
+    userView.classList.toggle("hidden", !cloudUser);
+  }
+  const dialogTitle = $("#authDialogTitle");
+  if (dialogTitle) {
+    dialogTitle.textContent = cloudUser ? "Tài khoản & Đồng bộ" : "Đăng nhập & Đồng bộ";
+  }
+
+  if (cloudUser) {
+    const emailDisplay = $("#userEmailDisplay");
+    if (emailDisplay) emailDisplay.textContent = cloudUser.is_anonymous ? "Khách ẩn danh" : (cloudUser.email || cloudUser.id);
+    const avatarCircle = $("#userAvatarCircle");
+    if (avatarCircle) avatarCircle.textContent = ((cloudUser.email || "U")[0]).toUpperCase();
+  }
+
+  // Server banner status
+  const config = getSupabaseConfig();
+  const serverDot = $("#serverStatusDot");
+  const serverText = $("#serverStatusText");
+  if (serverDot && serverText) {
+    if (config?.url && config?.anonKey) {
+      serverDot.classList.add("active");
+      const shortDomain = config.url.replace(/^https?:\/\//, "");
+      serverText.textContent = `Đã kết nối: ${shortDomain}`;
+    } else {
+      serverDot.classList.remove("active");
+      serverText.textContent = "Chưa cấu hình máy chủ Supabase";
+    }
+  }
+
+  const status = $("#cloudAuthStatus");
+  if (status) status.textContent = cloudUser ? (cloudUser.is_anonymous ? "Đã tự kết nối · khách ẩn danh" : `Đã đăng nhập: ${cloudUser.email || cloudUser.id}`) : (configured ? "Đã kết nối máy chủ · chưa đăng nhập" : "Chưa cấu hình Supabase");
+  const aiStatus = $("#aiCoachStatus");
+  if (aiStatus) aiStatus.textContent = cloudUser ? "AI Coach sẵn sàng" : "Cần đăng nhập Supabase";
+  const codeStatus = $("#codeReviewStatus");
+  if (codeStatus) codeStatus.textContent = cloudUser ? "Sẵn sàng" : "Đăng nhập Supabase để bắt đầu";
   if ($("#cloudSignOutButton")) $("#cloudSignOutButton").classList.toggle("hidden", !cloudUser);
 }
 
-function openCloudDialog() {
-  const config=getSupabaseConfig()||{};
-  $("#supabaseUrlInput").value=config.url||""; $("#supabaseKeyInput").value=config.anonKey||"";
-  updateCloudUI(); $("#cloudDialog").showModal();
+function openCloudDialog(initialTab) {
+  const config = getSupabaseConfig() || {};
+  const urlInput = $("#supabaseUrlInput");
+  const keyInput = $("#supabaseKeyInput");
+  if (urlInput) urlInput.value = config.url || "";
+  if (keyInput) keyInput.value = config.anonKey || "";
+  updateCloudUI();
+
+  if (initialTab) {
+    if (cloudUser) {
+      $("#authGuestView")?.classList.remove("hidden");
+      $("#authUserView")?.classList.add("hidden");
+    }
+    switchAuthTab(initialTab);
+  } else if (!cloudUser && (!config?.url || !config?.anonKey)) {
+    switchAuthTab("signin");
+  } else if (!cloudUser) {
+    switchAuthTab("signin");
+  }
+
+  $("#cloudDialog")?.showModal();
 }
 
 async function saveCloudConfig(event) {
@@ -785,50 +1166,114 @@ async function saveCloudConfig(event) {
   url = url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
   $("#supabaseUrlInput").value = url;
   const anonKey = $("#supabaseKeyInput").value.trim();
-  if(!/^https:\/\/.+\.supabase\.co$/.test(url) || anonKey.length<20) return showToast("Kiểm tra lại Project URL và anon key");
-  localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({url,anonKey})); cloudClient=null; cloudUser=null; initCloudClient(); await bootstrapCloud(); showToast("Đã lưu cấu hình Supabase");
+  if (!/^https:\/\/.+\.supabase\.co$/.test(url) || anonKey.length < 20) {
+    return showToast("Kiểm tra lại Project URL và anon key");
+  }
+  localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify({ url, anonKey }));
+  cloudClient = null;
+  cloudUser = null;
+  initCloudClient();
+  await bootstrapCloud();
+  showToast("Đã lưu máy chủ Supabase! Bạn có thể đăng nhập hoặc đăng ký.");
+  switchAuthTab("signin");
 }
 
 async function signInPassword() {
-  const email = $("#cloudEmailInput").value.trim();
+  const email = ($("#cloudEmailInput")?.value || "").trim();
   const password = $("#cloudPasswordInput")?.value || "";
-  if (!email || !password) return showToast("Nhập đầy đủ email và mật khẩu");
-  const client = initCloudClient();
-  if (!client) return showToast("Lưu cấu hình Supabase trước");
-  const { data, error } = await client.auth.signInWithPassword({ email, password });
-  if (error) {
-    if (error.message.includes("Email not confirmed")) {
-      return showToast("Tài khoản chưa xác nhận email. Hãy vào Supabase tắt 'Confirm email' là vào được ngay!");
-    }
-    return showToast(error.message);
-  }
-  cloudUser = data.user;
-  await bootstrapCloud();
-  updateCloudUI();
-  showToast(`Đã đăng nhập: ${email}`);
-}
+  if (!email || !password) return showToast("Vui lòng nhập đầy đủ email và mật khẩu");
 
-async function signUpPassword() {
-  const email = $("#cloudEmailInput").value.trim();
-  const password = $("#cloudPasswordInput")?.value || "";
-  if (!email || !password) return showToast("Nhập đầy đủ email và mật khẩu");
-  if (password.length < 6) return showToast("Mật khẩu phải từ 6 ký tự trở lên");
-  const client = initCloudClient();
-  if (!client) return showToast("Lưu cấu hình Supabase trước");
-  const { data, error } = await client.auth.signUp({ email, password });
-  if (error) {
-    if (error.message.includes("already registered")) {
-      return showToast("Tài khoản đã tạo rồi, bấm Đăng nhập nhé!");
-    }
-    return showToast(error.message);
+  const config = getSupabaseConfig();
+  if (!config?.url || !config?.anonKey) {
+    showToast("Vui lòng nhập cấu hình máy chủ Supabase trước");
+    switchAuthTab("signin");
+    return;
   }
-  if (data.session) {
+
+  const client = initCloudClient();
+  if (!client) return showToast("Không thể khởi tạo kết nối Supabase");
+
+  const submitBtn = $("#cloudSignInBtn");
+  const spinner = $("#signInSpinner");
+  const btnText = $("#signInBtnText");
+  if (submitBtn) submitBtn.setAttribute("disabled", "");
+  if (spinner) spinner.classList.remove("hidden");
+  if (btnText) btnText.textContent = "Đang đăng nhập…";
+
+  try {
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message.includes("Email not confirmed")) {
+        return showToast("Tài khoản chưa xác nhận email. Hãy vào Supabase tắt 'Confirm email' để vào ngay!");
+      }
+      if (error.message.includes("Invalid login credentials")) {
+        return showToast("Email hoặc mật khẩu không chính xác. Kiểm tra lại nhé!");
+      }
+      return showToast(error.message);
+    }
     cloudUser = data.user;
     await bootstrapCloud();
     updateCloudUI();
-    showToast(`Đăng ký và đăng nhập thành công: ${email}`);
-  } else {
-    showToast("Đã tạo tài khoản! Vui lòng bấm Đăng nhập (hoặc tắt 'Confirm email' trên Supabase).");
+    $("#cloudDialog")?.close();
+    showToast(`Đăng nhập thành công: ${email}`);
+  } catch (err) {
+    showToast(`Lỗi đăng nhập: ${err.message || err}`);
+  } finally {
+    if (submitBtn) submitBtn.removeAttribute("disabled");
+    if (spinner) spinner.classList.add("hidden");
+    if (btnText) btnText.textContent = "Đăng nhập ngay";
+  }
+}
+
+async function signUpPassword() {
+  const email = ($("#cloudSignUpEmailInput")?.value || $("#cloudEmailInput")?.value || "").trim();
+  const password = $("#cloudSignUpPasswordInput")?.value || $("#cloudPasswordInput")?.value || "";
+  if (!email || !password) return showToast("Vui lòng nhập đầy đủ email và mật khẩu");
+  if (password.length < 6) return showToast("Mật khẩu phải từ 6 ký tự trở lên");
+
+  const config = getSupabaseConfig();
+  if (!config?.url || !config?.anonKey) {
+    showToast("Vui lòng nhập cấu hình máy chủ Supabase trước");
+    switchAuthTab("signin");
+    return;
+  }
+
+  const client = initCloudClient();
+  if (!client) return showToast("Không thể khởi tạo kết nối Supabase");
+
+  const submitBtn = $("#cloudSignUpBtn");
+  const spinner = $("#signUpSpinner");
+  const btnText = $("#signUpBtnText");
+  if (submitBtn) submitBtn.setAttribute("disabled", "");
+  if (spinner) spinner.classList.remove("hidden");
+  if (btnText) btnText.textContent = "Đang tạo tài khoản…";
+
+  try {
+    const { data, error } = await client.auth.signUp({ email, password });
+    if (error) {
+      if (error.message.includes("already registered")) {
+        showToast("Email này đã được đăng ký rồi, hãy bấm Đăng nhập nhé!");
+        switchAuthTab("signin");
+        return;
+      }
+      return showToast(error.message);
+    }
+    if (data.session) {
+      cloudUser = data.user;
+      await bootstrapCloud();
+      updateCloudUI();
+      $("#cloudDialog")?.close();
+      showToast(`Đăng ký và đăng nhập thành công: ${email}`);
+    } else {
+      showToast("Đã tạo tài khoản! Bạn có thể bấm Đăng nhập ngay (hoặc tắt 'Confirm email' trong Supabase).");
+      switchAuthTab("signin");
+    }
+  } catch (err) {
+    showToast(`Lỗi tạo tài khoản: ${err.message || err}`);
+  } finally {
+    if (submitBtn) submitBtn.removeAttribute("disabled");
+    if (spinner) spinner.classList.add("hidden");
+    if (btnText) btnText.textContent = "Tạo tài khoản mới";
   }
 }
 
@@ -849,10 +1294,15 @@ function mergeById(a=[], b=[]) {
   const map=new Map(); [...a,...b].forEach((item)=>{ if(item?.id) { const old=map.get(item.id); if(!old || new Date(item.createdAt||item.updatedAt||0)>=new Date(old.createdAt||old.updatedAt||0)) map.set(item.id,item); }}); return [...map.values()];
 }
 
+function fallbackMergeTime(local, remote) {
+  return new Date(Math.max(new Date(local.updatedAt || 0), new Date(remote.updatedAt || 0))).toISOString();
+}
+
 function mergeStates(local, remote) {
   const base=initialState(); const merged={...base,...remote,...local};
-  merged.topics=Object.fromEntries(TOPICS.map((t)=>{const l=local.topics?.[t.id]||{}; const r=remote.topics?.[t.id]||{}; return [t.id,{solved:Math.max(Number(l.solved||0),Number(r.solved||0)),confidence:Math.max(Number(l.confidence||1),Number(r.confidence||1)),complete:Boolean(l.complete||r.complete)}];}));
-  merged.checks={...(remote.checks||{}),...(local.checks||{})}; merged.exercises={...(remote.exercises||{}),...(local.exercises||{})};
+  merged.topics=Object.fromEntries(TOPICS.map((t)=>{const l=local.topics?.[t.id]||{}; const r=remote.topics?.[t.id]||{}; const winner=new Date(l.updatedAt||local.updatedAt||0)>=new Date(r.updatedAt||remote.updatedAt||0)?l:r; return [t.id,{solved:clamp(Number(winner.solved||0),0,t.target),confidence:clamp(Number(winner.confidence||1),1,5),complete:Boolean(winner.complete),updatedAt:winner.updatedAt||fallbackMergeTime(local,remote)}];}));
+  merged.checks={...(remote.checks||{})}; Object.entries(local.checks||{}).forEach(([k,v])=>{const r=merged.checks[k]; if(!r || new Date(v.passedAt||0)>=new Date(r.passedAt||0)) merged.checks[k]=v;});
+  merged.exercises={...(remote.exercises||{})}; Object.entries(local.exercises||{}).forEach(([k,v])=>{merged.exercises[k]=Boolean(merged.exercises[k]||v);});
   merged.sessions=mergeById(remote.sessions,local.sessions); merged.mocks=mergeById(remote.mocks,local.mocks); merged.errors=mergeById(remote.errors,local.errors); merged.aiCodeReviews=mergeById(remote.aiCodeReviews,local.aiCodeReviews).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,12); merged.aiReasoningReviews=mergeById(remote.aiReasoningReviews,local.aiReasoningReviews).sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,12);
   merged.reviews={...(remote.reviews||{})}; Object.entries(local.reviews||{}).forEach(([k,v])=>{const rv=merged.reviews[k]; if(!rv || new Date(v.lastReviewedAt||0)>=new Date(rv.lastReviewedAt||0)) merged.reviews[k]=v;});
   merged.updatedAt=new Date(Math.max(new Date(local.updatedAt||0),new Date(remote.updatedAt||0))).toISOString(); merged.syncMeta={...(local.syncMeta||{}),deviceId:local.syncMeta?.deviceId||makeId()};
@@ -889,9 +1339,10 @@ async function createCloudClass() {
 async function joinCloudClass() {
   const client=initCloudClient(); if(!client || !cloudUser) return openCloudDialog();
   const code=prompt("Nhập mã lớp")?.trim().toUpperCase(); if(!code) return;
-  const {data:klass,error:e1}=await client.from("classes").select("id,name,code").eq("code",code).maybeSingle(); if(e1||!klass) return showToast(e1?.message||"Không tìm thấy lớp");
-  const {error:e2}=await client.from("class_members").upsert({class_id:klass.id,user_id:cloudUser.id},{onConflict:"class_id,user_id"}); if(e2) return showToast(e2.message);
-  state.cloudClass={id:klass.id,name:klass.name,code:klass.code,role:"student"}; saveState("Đã tham gia lớp cloud"); showToast(`Đã vào lớp ${klass.name}`);
+  const {data:klass,error:e1}=await client.rpc("join_class_by_code",{p_code:code});
+  const joinedClass=Array.isArray(klass)?klass[0]:klass;
+  if(e1||!joinedClass) return showToast(e1?.message||"Không tìm thấy lớp");
+  state.cloudClass={id:joinedClass.id,name:joinedClass.name,code:joinedClass.code,role:"student"}; saveState("Đã tham gia lớp cloud"); showToast(`Đã vào lớp ${joinedClass.name}`);
 }
 
 async function refreshCloudClass() {
@@ -987,12 +1438,13 @@ function renderTopics() {
     const progress = Math.round(topicProgress(topic) * 100);
     const dots = Array.from({ length: 5 }, (_, index) => `<i class="${index < value.confidence ? "on" : ""}"></i>`).join("");
     const hidden = activePhase !== "all" && Number(activePhase) !== topic.phase;
-    return `<button class="topic-card ${value.complete ? "complete" : ""} ${hidden ? "hidden" : ""}" type="button" data-topic-id="${topic.id}">
+    const locked = !isTopicUnlocked(topic);
+    return `<button class="topic-card ${value.complete ? "complete" : ""} ${locked ? "locked" : ""} ${hidden ? "hidden" : ""}" type="button" data-topic-id="${topic.id}" ${locked ? "aria-disabled=\"true\"" : ""}>
       <div class="topic-card-top"><span class="phase-number">PHASE 0${topic.phase}</span>${value.complete ? '<span class="complete-mark">✓</span>' : ""}</div>
       <h3>${topic.name}</h3>
       <p class="topic-meta">${topic.note}</p>
       ${state.checks?.[topic.id]?.passed ? '<p class="topic-meta topic-lesson-state">✓ Đã qua kiểm tra</p>' : ""}
-      <span class="topic-open-label">MỞ BÀI HỌC →</span>
+      <span class="topic-open-label">${locked ? "🔒 HOÀN THÀNH CHẶNG TRƯỚC" : "MỞ BÀI HỌC →"}</span>
       <div class="confidence-dots" aria-label="Confidence ${value.confidence} trên 5">${dots}</div>
       <div class="topic-foot"><span>${value.solved}/${topic.target} bài</span><span>${progress}%</span></div>
       <span class="topic-progress" style="width:${progress}%"></span>
@@ -1000,20 +1452,59 @@ function renderTopics() {
   }).join("");
 
   document.querySelectorAll("[data-topic-id]").forEach((card) => {
-    card.addEventListener("click", () => openTopicDialog(card.dataset.topicId));
+    card.addEventListener("click", () => {
+      const topic = TOPICS.find((item) => item.id === card.dataset.topicId);
+      if (topic && !isTopicUnlocked(topic)) return showToast("Hãy đạt 60% chặng trước trước nhé");
+      openTopicDialog(card.dataset.topicId);
+    });
   });
 }
 
 function renderExercises() {
-  const visible = EXERCISES.filter((exercise) => activeExerciseFilter === "all" || exercise.difficulty === activeExerciseFilter);
+  const query = (exerciseSearchQuery || "").toLowerCase().trim();
+  const visible = EXERCISES.filter((exercise) => {
+    const matchesFilter = activeExerciseFilter === "all" || exercise.difficulty === activeExerciseFilter;
+    if (!matchesFilter) return false;
+    const matchesPlatform = activePlatformFilter === "all" || (exercise.platform || "marisa") === activePlatformFilter;
+    if (!matchesPlatform) return false;
+    if (!query) return true;
+    const titleMatch = exercise.title.toLowerCase().includes(query);
+    const idMatch = exercise.id.toLowerCase().includes(query) || exercise.url.toLowerCase().includes(query);
+    const topic = TOPICS.find((t) => t.id === exercise.topicId);
+    const topicMatch = topic ? topic.name.toLowerCase().includes(query) || topic.code.toLowerCase().includes(query) || topic.id.toLowerCase().includes(query) || (topic.note || "").toLowerCase().includes(query) : false;
+    const platformMatch = (exercise.platform || "marisa").toLowerCase().includes(query);
+    return titleMatch || idMatch || topicMatch || platformMatch;
+  });
   const score = EXERCISES.reduce((sum, exercise) => sum + (state.exercises?.[exercise.id] ? exercise.points : 0), 0);
   $("#exerciseScore").textContent = score;
+
+  const clearBtn = $("#clearExerciseSearchBtn");
+  if (clearBtn) clearBtn.classList.toggle("hidden", !query);
+
+  if (!visible.length) {
+    $("#exerciseGrid").innerHTML = `<div class="empty-search-state">Không tìm thấy bài tập nào khớp với bộ lọc hoặc từ khóa "${escapeHTML(query)}". Thử chọn tab "Tất cả" hoặc tìm từ khóa khác.</div>`;
+    return;
+  }
+
+  const platformNames = { marisa: 'MarisaOJ', vnoj: 'VNOJ', cses: 'CSES', codeforces: 'Codeforces', atcoder: 'AtCoder' };
+
   $("#exerciseGrid").innerHTML = visible.map((exercise) => {
     const isAc = Boolean(state.exercises?.[exercise.id]);
+    const platKey = exercise.platform || 'marisa';
+    const platLabel = platformNames[platKey] || 'MarisaOJ';
+    let hostLabel = '';
+    try { hostLabel = new URL(exercise.url).hostname.replace('www.', ''); } catch { hostLabel = platLabel; }
+
     return `<article class="exercise-card ${isAc ? "ac" : ""}">
-      <div class="exercise-card-top"><span class="difficulty-badge ${exercise.difficulty}">${DIFFICULTY[exercise.difficulty]}</span><span class="exercise-points">+${exercise.points} điểm</span></div>
+      <div class="exercise-card-top">
+        <div class="exercise-badges">
+          <span class="difficulty-badge ${exercise.difficulty}">${DIFFICULTY[exercise.difficulty]}</span>
+          <span class="platform-badge ${platKey}">${platLabel}</span>
+        </div>
+        <span class="exercise-points">+${exercise.points} điểm</span>
+      </div>
       <h4>${escapeHTML(exercise.title)}</h4>
-      <small>marisaoj.com/problem/${exercise.url.split("/").pop()}</small>
+      <small>${escapeHTML(hostLabel)} · ${escapeHTML(exercise.id)}</small>
       <div class="exercise-card-actions">
         <a class="exercise-link" href="${exercise.url}" target="_blank" rel="noopener noreferrer">Mở đề ↗</a>
         <button class="exercise-ac-button" type="button" data-ac-exercise="${exercise.id}">${isAc ? "✓ Đã AC" : "Đánh dấu AC"}</button>
@@ -1072,6 +1563,94 @@ function renderHistory() {
   }).join("");
 }
 
+function renderSkillRadarChart() {
+  const svg = $("#skillRadarChart");
+  const legend = $("#radarLegend");
+  const overallLabel = $("#radarOverallLabel");
+  if (!svg) return;
+
+  const axes = [
+    { key: "ds", label: "Cấu trúc DL", topicIds: ["containers", "range-query"], color: "#73e8ff" },
+    { key: "dp", label: "Quy hoạch động", topicIds: ["dp-basic", "advanced-dp", "bitmask"], color: "#a89dff" },
+    { key: "graph", label: "Đồ thị & Cây", topicIds: ["graph-basic", "shortest-path", "tree"], color: "#34d399" },
+    { key: "math", label: "Toán & Bitwise", topicIds: ["number-theory", "bitmask"], color: "#ffbe42" },
+    { key: "search", label: "Tìm kiếm & Greed", topicIds: ["binary-search", "bs-answer", "two-pointers", "sorting-greedy"], color: "#c7ff65" },
+    { key: "string", label: "Xâu & Cài đặt", topicIds: ["strings", "backtracking", "mixed", "contest"], color: "#ff7675" }
+  ];
+
+  const axisValues = axes.map(axis => {
+    const topics = TOPICS.filter(t => axis.topicIds.includes(t.id));
+    if (!topics.length) return 0;
+    const avgMastery = topics.reduce((sum, t) => sum + topicMastery(t), 0) / topics.length;
+    return Math.round(clamp(avgMastery * 100, 5, 100));
+  });
+
+  const avgAll = Math.round(axisValues.reduce((s, v) => s + v, 0) / axisValues.length);
+  if (overallLabel) {
+    overallLabel.textContent = avgAll >= 80 ? "Sẵn sàng thi (Master)" : avgAll >= 50 ? "Khá vững (Advanced)" : avgAll >= 25 ? "Đang tiến bộ (Intermediate)" : "Mới bắt đầu (Beginner)";
+  }
+
+  const cx = 170, cy = 160, r = 100;
+  const numAxes = axes.length;
+  const angleStep = (2 * Math.PI) / numAxes;
+  const startAngle = -Math.PI / 2;
+
+  const levels = [0.25, 0.5, 0.75, 1.0];
+  const gridPolygons = levels.map(level => {
+    const pts = [];
+    for (let i = 0; i < numAxes; i++) {
+      const angle = startAngle + i * angleStep;
+      const x = cx + Math.cos(angle) * r * level;
+      const y = cy + Math.sin(angle) * r * level;
+      pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    return `<polygon points="${pts.join(' ')}" class="radar-grid-polygon" />`;
+  }).join('');
+
+  let axisLinesAndLabels = '';
+  for (let i = 0; i < numAxes; i++) {
+    const angle = startAngle + i * angleStep;
+    const xEnd = cx + Math.cos(angle) * r;
+    const yEnd = cy + Math.sin(angle) * r;
+    axisLinesAndLabels += `<line x1="${cx}" y1="${cy}" x2="${xEnd.toFixed(1)}" y2="${yEnd.toFixed(1)}" class="radar-axis-line" />`;
+
+    const labelR = r + 26;
+    const lx = cx + Math.cos(angle) * labelR;
+    const ly = cy + Math.sin(angle) * labelR;
+    axisLinesAndLabels += `
+      <text x="${lx.toFixed(1)}" y="${(ly - 6).toFixed(1)}" class="radar-axis-label">${axes[i].label}</text>
+      <text x="${lx.toFixed(1)}" y="${(ly + 8).toFixed(1)}" class="radar-axis-val">${axisValues[i]}%</text>
+    `;
+  }
+
+  const dataPoints = [];
+  let circlePoints = '';
+  for (let i = 0; i < numAxes; i++) {
+    const angle = startAngle + i * angleStep;
+    const valRatio = axisValues[i] / 100;
+    const x = cx + Math.cos(angle) * r * valRatio;
+    const y = cy + Math.sin(angle) * r * valRatio;
+    dataPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    circlePoints += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" class="radar-data-point" />`;
+  }
+
+  svg.innerHTML = `
+    ${gridPolygons}
+    ${axisLinesAndLabels}
+    <polygon points="${dataPoints.join(' ')}" class="radar-data-polygon" />
+    ${circlePoints}
+  `;
+
+  if (legend) {
+    legend.innerHTML = axes.map((a, i) => `
+      <div class="radar-legend-item">
+        <span>${a.label}</span>
+        <strong style="color: ${a.color}">${axisValues[i]}%</strong>
+      </div>
+    `).join('');
+  }
+}
+
 function renderAll() {
   renderStats();
   renderRecommendation();
@@ -1085,6 +1664,7 @@ function renderAll() {
   renderProfile();
   populateTopicSelect();
   renderTeacherDashboard();
+  renderSkillRadarChart();
   buildQuickReview();
   switchModeVisualOnly();
 }
@@ -1232,13 +1812,43 @@ function logSession(event) {
   const note = $("#sessionNote").value.trim();
   const quality = Number($("#sessionQuality")?.value || 3);
   if (!topicId || minutes < 10 || problems < 0) return;
-  state.sessions.push({ id: makeId(), topicId, minutes, problems, note, quality, createdAt: new Date().toISOString() });
-  state.reviews[topicId] = { level: 0, lastReviewedAt: new Date().toISOString() };
-  state.topics[topicId].solved += problems;
+  const exerciseIds = [...new Set((
+    $("#sessionExerciseIds")?.value || ""
+  ).split(",").map((id) => id.trim()).filter(Boolean))];
+  const hasCuratedExercises = EXERCISES.some((exercise) => exercise.topicId === topicId);
+  const externalPractice = Boolean($("#sessionExternalPractice")?.checked);
+  if (hasCuratedExercises && !exerciseIds.length && !externalPractice) return showToast("Nhập mã bài đã AC hoặc đánh dấu bài ngoài kho");
+  const knownExercises = exerciseIds.filter((id) => EXERCISES.some((exercise) => exercise.id === id && exercise.topicId === topicId));
+  const invalidExercises = exerciseIds.filter((id) => !knownExercises.includes(id));
+  if (invalidExercises.length) showToast(`Bỏ qua mã bài không hợp lệ: ${invalidExercises.join(", ")}`);
+  const newExercises = knownExercises.filter((id) => !state.exercises?.[id]);
+  state.exercises ||= {};
+  newExercises.forEach((id) => { state.exercises[id] = true; });
+  const countedProblems = exerciseIds.length ? newExercises.length : problems;
+  state.sessions.push({ id: makeId(), topicId, minutes, problems: countedProblems, exerciseIds: newExercises, note, quality, createdAt: new Date().toISOString() });
+  const now = new Date().toISOString();
+  const topicState = state.topics[topicId];
+  const previousSolved = Number(topicState.solved || 0);
+  // A session may contain practice outside the curated exercise list, but it
+  // must not make the roadmap exceed its target.
+  topicState.solved = Math.min(topic.target, previousSolved + countedProblems);
+
+  // Logging practice is not the same as failing a review. Preserve the
+  // established interval instead of resetting spaced repetition every time.
+  const currentReview = state.reviews?.[topicId];
+  const sessionLevel = quality >= 4 ? 1 : quality <= 2 ? -1 : 0;
+  const currentLevel = Number(currentReview?.level || 0);
+  const nextLevel = currentReview
+    ? clamp(currentLevel + sessionLevel, 0, REVIEW_INTERVALS.length - 1)
+    : 0;
+  state.reviews[topicId] = { level: nextLevel, lastReviewedAt: now };
+  topicState.updatedAt = now;
   const topic = TOPICS.find((item) => item.id === topicId);
   if (state.topics[topicId].solved >= topic.target && state.topics[topicId].confidence >= 4) state.topics[topicId].complete = true;
   $("#sessionDialog").close();
   $("#sessionNote").value = "";
+  if ($("#sessionExerciseIds")) $("#sessionExerciseIds").value = "";
+  if ($("#sessionExternalPractice")) $("#sessionExternalPractice").checked = false;
   saveState("Đã cộng buổi học vào tiến độ");
   renderAll();
 }
@@ -1248,11 +1858,12 @@ function updateTopic(event) {
   event.preventDefault();
   const topicId = $("#topicId").value;
   const topic = TOPICS.find((item) => item.id === topicId);
-  const solved = clamp(Number($("#topicSolved").value), 0, topic.target * 2);
+  const solved = clamp(Number($("#topicSolved").value), 0, topic.target);
   state.topics[topicId] = {
     solved,
     confidence: Number($("#topicConfidence").value),
-    complete: $("#topicComplete").checked
+    complete: $("#topicComplete").checked,
+    updatedAt: new Date().toISOString()
   };
   $("#topicDialog").close();
   saveState("Đã cập nhật milestone");
@@ -1361,6 +1972,13 @@ $("#exerciseFilters").addEventListener("click", (event) => {
   document.querySelectorAll("#exerciseFilters button").forEach((item) => item.classList.toggle("active", item === button));
   renderExercises();
 });
+$("#platformFilters")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-platform-filter]");
+  if (!button) return;
+  activePlatformFilter = button.dataset.platformFilter;
+  document.querySelectorAll("#platformFilters button").forEach((item) => item.classList.toggle("active", item === button));
+  renderExercises();
+});
 
 
 $("#generatePlanButton")?.addEventListener("click", generateDailyPlan);
@@ -1368,8 +1986,24 @@ $("#logErrorButton")?.addEventListener("click", () => $("#errorDialog").showModa
 $("#errorForm")?.addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
-  state.errors.push({ id:makeId(), topicId:$("#errorTopic").value, type:$("#errorType").value, note:$("#errorNote").value.trim(), createdAt:new Date().toISOString() });
+  const topicId = $("#errorTopic").value;
+  const type = $("#errorType").value;
+  const note = $("#errorNote").value.trim();
+  const duplicate = state.errors.some((error) => error.status !== "resolved" && error.topicId === topicId && error.type === type && error.note === note);
+  if (!duplicate) state.errors.push({ id:makeId(), topicId, type, note, status:"open", createdAt:new Date().toISOString() });
   $("#errorDialog").close(); $("#errorNote").value=""; saveState("Đã thêm vào Error Notebook"); renderAll();
+});
+$("#errorInsights")?.addEventListener("click", (event) => {
+  const retryButton = event.target.closest("[data-reattempt-error]");
+  if (retryButton) {
+    const error = state.errors.find((item) => item.id === retryButton.dataset.reattemptError);
+    if (error) { error.attempts = Number(error.attempts || 0) + 1; error.lastReattemptAt = new Date().toISOString(); saveState("Đã ghi nhận lần làm lại"); renderAll(); }
+    return;
+  }
+  const button = event.target.closest("[data-resolve-error]");
+  if (!button) return;
+  const error = state.errors.find((item) => item.id === button.dataset.resolveError);
+  if (error) { error.status = "resolved"; error.resolvedAt = new Date().toISOString(); saveState("Đã đóng lỗi — sẽ giảm ưu tiên Coach"); renderAll(); }
 });
 $("#profileButton")?.addEventListener("click",()=>{ $("#profileNameInput").value=state.profile?.name||""; $("#profileGoalInput").value=state.profile?.goal||""; $("#profileMinutesInput").value=state.profile?.defaultMinutes||60; $("#profileDialog").showModal(); });
 $("#profileForm")?.addEventListener("submit",(event)=>{ if(event.submitter?.value==="cancel")return; event.preventDefault(); state.profile={name:$("#profileNameInput").value.trim(),goal:$("#profileGoalInput").value.trim(),defaultMinutes:clamp(Number($("#profileMinutesInput").value),30,240)}; $("#profileDialog").close(); saveState("Đã cập nhật hồ sơ"); renderAll(); upsertCloudProfile(); });
@@ -1383,19 +2017,26 @@ $("#reviewDueList")?.addEventListener("click", (event)=>{ const button=event.tar
 $("#studentTableBody")?.addEventListener("click", (event)=>{const button=event.target.closest("[data-remove-student]"); if(!button)return; state.classroom.students=state.classroom.students.filter((s)=>s.id!==button.dataset.removeStudent); saveState("Đã xóa hồ sơ học sinh"); renderTeacherDashboard();});
 $("#flashcard")?.addEventListener("click", ()=>$("#flashcard").classList.toggle("revealed"));
 $("#flashcard")?.addEventListener("keydown", (event)=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();$("#flashcard").classList.toggle("revealed");}});
-$("#flashRevealButton")?.addEventListener("click", ()=>$("#flashcard").classList.add("revealed"));
-$("#flashAgainButton")?.addEventListener("click", ()=>{const card=quickReviewCards[quickReviewIndex]; if(card) markReviewed(card.topicId,"again"); nextQuickCard();});
-$("#flashGoodButton")?.addEventListener("click", ()=>{const card=quickReviewCards[quickReviewIndex]; if(card) markReviewed(card.topicId,"good"); nextQuickCard();});
+$("#flashRevealButton")?.addEventListener("click", ()=>$("#flashcard").classList.toggle("revealed"));
+$("#sm2AgainBtn")?.addEventListener("click", () => handleSM2Rating('again'));
+$("#sm2HardBtn")?.addEventListener("click", () => handleSM2Rating('hard'));
+$("#sm2GoodBtn")?.addEventListener("click", () => handleSM2Rating('good'));
+$("#sm2EasyBtn")?.addEventListener("click", () => handleSM2Rating('easy'));
+$("#openFlashcardDeckBtn")?.addEventListener("click", () => {
+  switchAppTab("review");
+  $("#quickReviewSection")?.scrollIntoView({ behavior: "smooth" });
+});
 $("#calendarExportButton")?.addEventListener("click", exportReviewCalendar);
-$("#cloudSettingsButton")?.addEventListener("click", openCloudDialog);
+$("#headerAuthButton")?.addEventListener("click", () => openCloudDialog());
+$("#cloudSettingsButton")?.addEventListener("click", () => openCloudDialog());
 $("#importBackupButton")?.addEventListener("click", importData);
 $("#joinCloudClassFromDialogButton")?.addEventListener("click", joinCloudClass);
 $("#cloudConfigForm")?.addEventListener("submit", saveCloudConfig);
 $("#cloudSignInBtn")?.addEventListener("click", signInPassword);
 $("#cloudSignUpBtn")?.addEventListener("click", signUpPassword);
-$("#copyPhoneConfigLinkBtn")?.addEventListener("click", ()=>{
+$("#copyPhoneConfigLinkBtn")?.addEventListener("click", () => {
   const config = getSupabaseConfig();
-  if(!config?.url || !config?.anonKey) return showToast("Hãy lưu URL và Key trước khi copy link.");
+  if (!config?.url || !config?.anonKey) return showToast("Hãy lưu URL và Key trước khi copy link.");
   const base = window.location.origin + window.location.pathname;
   const link = `${base}?cloudUrl=${encodeURIComponent(config.url)}&cloudKey=${encodeURIComponent(config.anonKey)}`;
   navigator.clipboard.writeText(link);
@@ -1403,12 +2044,83 @@ $("#copyPhoneConfigLinkBtn")?.addEventListener("click", ()=>{
 });
 $("#cloudMagicLinkButton")?.addEventListener("click", signInMagicLink);
 $("#cloudGoogleButton")?.addEventListener("click", signInGoogle);
-$("#cloudSignOutButton")?.addEventListener("click", async()=>{if(cloudClient)await cloudClient.auth.signOut();cloudUser=null;updateCloudUI();showToast("Đã đăng xuất cloud");});
+$("#cloudSignOutButton")?.addEventListener("click", async () => {
+  if (cloudClient) await cloudClient.auth.signOut();
+  cloudUser = null;
+  updateCloudUI();
+  showToast("Đã đăng xuất cloud");
+});
 $("#createCloudClassButton")?.addEventListener("click", createCloudClass);
 $("#joinCloudClassButton")?.addEventListener("click", joinCloudClass);
-window.addEventListener("online", ()=>{showToast("Đã có mạng · đang đồng bộ"); performCloudSync();});
-window.addEventListener("offline", ()=>{$("#saveState").innerHTML="<i></i> Offline · đã lưu cục bộ";});
-if("serviceWorker" in navigator && location.protocol !== "file:") window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js").catch(console.warn));
+
+// Auth modal tabs & interactive switches
+document.querySelectorAll(".auth-tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.authTab) switchAuthTab(btn.dataset.authTab);
+  });
+});
+$("#toSignUpBtn")?.addEventListener("click", () => switchAuthTab("signup"));
+$("#toSignInBtn")?.addEventListener("click", () => switchAuthTab("signin"));
+$("#editServerConfigBtn")?.addEventListener("click", () => {
+  $("#authGuestView")?.classList.remove("hidden");
+  $("#authUserView")?.classList.add("hidden");
+  switchAuthTab("config");
+});
+
+// Password visibility toggles
+function wirePasswordToggle(toggleId, inputId) {
+  const toggleBtn = $(toggleId);
+  const input = $(inputId);
+  if (toggleBtn && input) {
+    toggleBtn.addEventListener("click", () => {
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      toggleBtn.textContent = isPassword ? "🙈" : "👁️";
+      toggleBtn.setAttribute("aria-label", isPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+    });
+  }
+}
+wirePasswordToggle("#toggleSignInPasswordBtn", "#cloudPasswordInput");
+wirePasswordToggle("#toggleSignUpPasswordBtn", "#cloudSignUpPasswordInput");
+
+// Submit on Enter in password fields
+$("#cloudPasswordInput")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    signInPassword();
+  }
+});
+$("#cloudSignUpPasswordInput")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    signUpPassword();
+  }
+});
+
+// Sync email inputs
+$("#cloudEmailInput")?.addEventListener("input", (e) => {
+  const val = e.target.value;
+  const other = $("#cloudSignUpEmailInput");
+  if (other && other.value !== val) other.value = val;
+});
+$("#cloudSignUpEmailInput")?.addEventListener("input", (e) => {
+  const val = e.target.value;
+  const other = $("#cloudEmailInput");
+  if (other && other.value !== val) other.value = val;
+});
+
+// Manual sync button in user hub
+$("#dialogManualSyncBtn")?.addEventListener("click", async () => {
+  const icon = $("#dialogManualSyncBtn .hub-icon");
+  if (icon) icon.style.animation = "olp-spin .8s linear infinite";
+  await performCloudSync(true);
+  if (icon) icon.style.animation = "";
+  showToast("Đã đồng bộ dữ liệu xong");
+});
+
+window.addEventListener("online", () => { showToast("Đã có mạng · đang đồng bộ"); performCloudSync(); });
+window.addEventListener("offline", () => { $("#saveState").innerHTML = "<i></i> Offline · đã lưu cục bộ"; });
+if ("serviceWorker" in navigator && location.protocol !== "file:") window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(console.warn));
 bootstrapCloud();
 
 renderAll();
@@ -1418,7 +2130,7 @@ function buildAIContext() {
   const coach = smartCoach();
   const cutoff = Date.now() - 14 * 86400000;
   const recentSessions = state.sessions.filter(s => new Date(s.createdAt || 0).getTime() >= cutoff).slice(-30);
-  const recentErrors = state.errors.filter(e => new Date(e.createdAt || 0).getTime() >= cutoff).slice(-20);
+  const recentErrors = state.errors.filter(e => e.status !== "resolved" && new Date(e.createdAt || 0).getTime() >= cutoff).slice(-20);
   const recentMocks = state.mocks.slice(-5);
   return {
     learner: { goal: state.profile?.goal || 'OLP Tin học 2026', defaultMinutes: state.profile?.defaultMinutes || 60 },
@@ -1479,10 +2191,17 @@ let revealedHintLevel = 0;
 
 function populateCodeReviewTopics() {
   const select = $("#codeReviewTopic");
-  if (!select || select.options.length) return;
-  select.innerHTML = TOPICS.map(t => `<option value="${t.id}">${escapeHTML(t.code)} · ${escapeHTML(t.name)}</option>`).join("");
-  const focus = smartCoach()?.focus?.topic?.id;
-  if (focus) select.value = focus;
+  if (select && !select.options.length) {
+    select.innerHTML = TOPICS.map(t => `<option value="${t.id}">${escapeHTML(t.code)} · ${escapeHTML(t.name)}</option>`).join("");
+    const focus = smartCoach()?.focus?.topic?.id;
+    if (focus) select.value = focus;
+  }
+  const counterSelect = $("#counterTestTopic");
+  if (counterSelect && !counterSelect.options.length) {
+    counterSelect.innerHTML = TOPICS.map(t => `<option value="${t.id}">${escapeHTML(t.code)} · ${escapeHTML(t.name)}</option>`).join("");
+    const focus = smartCoach()?.focus?.topic?.id;
+    if (focus) counterSelect.value = focus;
+  }
 }
 
 function normalizeHints(result) {
@@ -1763,6 +2482,31 @@ function checkUrlImportParams() {
       }
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+
+    // V7: Handle shared contest link: ?mockProblems=p1,p2,p3&dur=60
+    const mockParam = params.get('mockProblems');
+    const durParam = params.get('dur');
+    if (mockParam) {
+      const problemIds = mockParam.split(',').map(s => s.trim()).filter(Boolean);
+      const matched = problemIds.map(id => EXERCISES.find(e => e.id === id)).filter(Boolean);
+      if (matched.length >= 2) {
+        const dur = Number(durParam) || 60;
+        if ($("#contestDurationSelect")) $("#contestDurationSelect").value = String(dur);
+        const labels = ['Bài A', 'Bài B', 'Bài C', 'Bài D'];
+        const targets = dur <= 45 ? [15, dur - 15] : dur === 90 ? [25, 30, 35] : dur === 120 ? [30, 45, 45] : dur === 180 ? [40, 70, 70] : [18, 24, 18];
+        previewContestProblems = matched.map((p, i) => ({
+          ...p,
+          label: labels[i] || `Bài ${i + 1}`,
+          targetMinutes: targets[i] || 20,
+          status: i === 0 ? 'doing' : 'none',
+          timeSeconds: 0
+        }));
+        openVirtualContestDialog();
+        renderContestSetupPreview();
+        showToast(`Đã tải bộ đề thi thử được chia sẻ (${matched.length} bài, ${dur} phút)!`);
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   } catch (e) {
     console.warn("Could not parse URL import params", e);
   }
@@ -1819,31 +2563,79 @@ const VIRTUAL_CONTEST_KEY = "olp26-virtual-contest-v1";
 let virtualContest = null;
 let contestTimerInterval = null;
 
-function getProposedContestProblems(strategy = 'standard') {
-  let easyList = EXERCISES.filter(e => e.difficulty === 'easy');
-  let mediumList = EXERCISES.filter(e => e.difficulty === 'medium');
-  let hardList = EXERCISES.filter(e => e.difficulty === 'hard' || e.difficulty === 'extreme');
+function getProposedContestProblems(strategy = 'standard', durationMinutes = null) {
+  const dur = Number(durationMinutes || $("#contestDurationSelect")?.value || 60);
+  let pool = [...EXERCISES];
 
-  if (strategy === 'unsolved') {
-    const unsolvedEasy = easyList.filter(e => !state.exercises?.[e.id]);
-    const unsolvedMed = mediumList.filter(e => !state.exercises?.[e.id]);
-    const unsolvedHard = hardList.filter(e => !state.exercises?.[e.id]);
-    if (unsolvedEasy.length) easyList = unsolvedEasy;
-    if (unsolvedMed.length) mediumList = unsolvedMed;
-    if (unsolvedHard.length) hardList = unsolvedHard;
+  if (strategy === 'graph_dp') {
+    const focusTopics = ['graph-basic', 'shortest-path', 'tree', 'dp-basic', 'advanced-dp', 'bitmask'];
+    const filtered = pool.filter(e => focusTopics.includes(e.topicId));
+    if (filtered.length >= 6) pool = filtered;
+  } else if (strategy === 'unsolved') {
+    const unsolved = pool.filter(e => !state.exercises?.[e.id]);
+    if (unsolved.length >= 6) pool = unsolved;
   }
 
-  // Shuffle pick
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)] || arr[0];
-  const p1 = pick(easyList);
-  const p2 = pick(mediumList);
-  const p3 = pick(hardList);
+  let easyList = pool.filter(e => e.difficulty === 'easy');
+  let mediumList = pool.filter(e => e.difficulty === 'medium');
+  let hardList = pool.filter(e => e.difficulty === 'hard');
+  let extremeList = pool.filter(e => e.difficulty === 'extreme');
 
-  return [
-    { ...p1, label: 'Bài A', targetMinutes: 18, status: 'doing', timeSeconds: 0 },
-    { ...p2, label: 'Bài B', targetMinutes: 24, status: 'none', timeSeconds: 0 },
-    { ...p3, label: 'Bài C', targetMinutes: 18, status: 'none', timeSeconds: 0 }
-  ];
+  if (!easyList.length) easyList = EXERCISES.filter(e => e.difficulty === 'easy');
+  if (!mediumList.length) mediumList = EXERCISES.filter(e => e.difficulty === 'medium');
+  if (!hardList.length) hardList = EXERCISES.filter(e => e.difficulty === 'hard');
+  if (!extremeList.length) extremeList = hardList;
+
+  const pick = (arr, used = []) => {
+    const available = arr.filter(x => !used.includes(x.id));
+    const targetArr = available.length ? available : arr;
+    return targetArr[Math.floor(Math.random() * targetArr.length)] || targetArr[0];
+  };
+
+  let chosen = [];
+
+  if (dur <= 45) {
+    const p1 = pick(easyList);
+    const p2 = pick(mediumList, [p1.id]);
+    const t1 = dur === 30 ? 12 : 18;
+    const t2 = dur - t1;
+    chosen = [
+      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 }
+    ];
+  } else if (strategy === 'olp_chuyen') {
+    const p1 = pick(mediumList);
+    const p2 = pick(hardList, [p1.id]);
+    const p3 = pick(extremeList, [p1.id, p2.id]);
+    const [t1, t2, t3] = dur === 180 ? [45, 65, 70] : dur === 120 ? [30, 45, 45] : [15, 25, 20];
+    chosen = [
+      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+    ];
+  } else if (strategy === 'olp_khong_chuyen') {
+    const p1 = pick(easyList);
+    const p2 = pick(easyList, [p1.id]);
+    const p3 = pick(mediumList, [p1.id, p2.id]);
+    const [t1, t2, t3] = dur === 120 ? [35, 40, 45] : dur === 90 ? [25, 30, 35] : [18, 20, 22];
+    chosen = [
+      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+    ];
+  } else {
+    const p1 = pick(easyList);
+    const p2 = pick(mediumList, [p1.id]);
+    const p3 = pick(hardList, [p1.id, p2.id]);
+    const [t1, t2, t3] = dur === 180 ? [40, 70, 70] : dur === 120 ? [30, 45, 45] : dur === 90 ? [25, 35, 30] : [18, 24, 18];
+    chosen = [
+      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+    ];
+  }
+
+  return chosen;
 }
 
 let previewContestProblems = [];
@@ -1852,11 +2644,12 @@ function renderContestSetupPreview() {
   const container = $("#contestPreviewProblems");
   if (!container) return;
   const strategy = $("#contestProblemSetSelect")?.value || 'standard';
+  const dur = Number($("#contestDurationSelect")?.value || 60);
   if (!previewContestProblems.length) {
-    previewContestProblems = getProposedContestProblems(strategy);
+    previewContestProblems = getProposedContestProblems(strategy, dur);
   }
 
-  container.innerHTML = previewContestProblems.map((p, idx) => {
+  container.innerHTML = previewContestProblems.map((p) => {
     const topic = TOPICS.find(t => t.id === p.topicId);
     return `
       <div class="contest-preview-card">
@@ -1873,18 +2666,32 @@ function renderContestSetupPreview() {
   }).join('');
 }
 
+function copyShareContestLink() {
+  if (!previewContestProblems.length) return;
+  const ids = previewContestProblems.map(p => p.id).join(',');
+  const dur = $("#contestDurationSelect")?.value || 60;
+  const shareUrl = `${window.location.origin}${window.location.pathname}?mockProblems=${encodeURIComponent(ids)}&dur=${dur}`;
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      showToast('Đã copy link thi chung! Gửi link cho bạn bè để cùng thi đề này.');
+    }).catch(() => {
+      prompt('Sao chép link thi chung:', shareUrl);
+    });
+  } else {
+    prompt('Sao chép link thi chung:', shareUrl);
+  }
+}
+
 function openVirtualContestDialog() {
   const dialog = $("#contestArenaDialog");
   if (!dialog) return;
 
   if (virtualContest && !virtualContest.isFinished) {
-    // Show live screen
     $("#contestSetupScreen")?.classList.add('hidden');
     $("#contestSummaryScreen")?.classList.add('hidden');
     $("#contestLiveScreen")?.classList.remove('hidden');
     renderContestLiveArena();
   } else {
-    // Show setup screen
     previewContestProblems = [];
     renderContestSetupPreview();
     $("#contestSetupScreen")?.classList.remove('hidden');
@@ -1915,7 +2722,9 @@ function launchVirtualContest() {
       url: p.url,
       label: p.label,
       status: p.status || 'none',
-      timeSeconds: 0
+      targetMinutes: p.targetMinutes || 20,
+      timeSeconds: 0,
+      attempts: 0
     })),
     activeProblemIndex: 0,
     isFinished: false
@@ -2037,7 +2846,10 @@ function renderContestLiveArena() {
               ✓ AC
             </button>
             <button class="status-pill-btn ${p.status === 'wa' ? 'active status-wa' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'wa')">
-              WA / TLE
+              WA
+            </button>
+            <button class="status-pill-btn ${p.status === 'tle' ? 'active status-wa' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'tle')">
+              TLE
             </button>
             <button class="status-pill-btn ${p.status === 'stuck' ? 'active status-stuck' : ''}" type="button" onclick="setContestProblemVerdict(${idx}, 'stuck')">
               Stuck
@@ -2060,6 +2872,10 @@ window.setContestProblemVerdict = function(idx, verdict) {
   if (!virtualContest) return;
   const p = virtualContest.problems[idx];
   if (p) {
+    if (p.status !== verdict && verdict !== 'none') {
+      p.attempts = Number(p.attempts || 0) + 1;
+      virtualContest.submissions = Number(virtualContest.submissions || 0) + 1;
+    }
     p.status = (p.status === verdict) ? 'none' : verdict;
     // If marked AC, mark in global state as solved too
     if (p.status === 'ac' && p.id) {
@@ -2102,7 +2918,8 @@ function finishVirtualContest(promptConfirm = true) {
 
   const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
   const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
-  const scaledScore = Math.round((earnedPoints / (totalPoints || 1)) * 100);
+  const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
+  const scaledScore = Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
   const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
 
   const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
@@ -2131,7 +2948,8 @@ function finishVirtualContest(promptConfirm = true) {
       let statusBadge = `<span style="color:var(--muted)">Chưa xong</span>`;
       if (p.status === 'ac') statusBadge = `<span style="color:var(--lime)">✓ AC (+${p.points}đ)</span>`;
       else if (p.status === 'stuck') statusBadge = `<span style="color:#ffab91">Stuck</span>`;
-      else if (p.status === 'wa') statusBadge = `<span style="color:#ff6b6b">WA/TLE</span>`;
+      else if (p.status === 'wa') statusBadge = `<span style="color:#ff6b6b">WA</span>`;
+      else if (p.status === 'tle') statusBadge = `<span style="color:#ff6b6b">TLE</span>`;
 
       return `
         <div class="time-breakdown-item">
@@ -2171,7 +2989,8 @@ function saveContestToHistory() {
   if (!virtualContest) return;
   const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
   const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
-  const scaledScore = Math.round((earnedPoints / (totalPoints || 1)) * 100);
+  const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
+  const scaledScore = Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
   const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
   const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
   const totalUsedMins = Math.max(1, Math.round(totalUsedSec / 60));
@@ -2185,7 +3004,7 @@ function saveContestToHistory() {
     score: scaledScore,
     solved: acCount,
     minutes: totalUsedMins,
-    submits: 3,
+    submits: Number(virtualContest.submissions || 0),
     weakTopicId: weakTopic,
     note: `[Virtual Mock] ${acCount}/3 AC · ${totalUsedMins} phút · Đề: ${virtualContest.problems.map(p => p.title).join(', ')}`,
     createdAt: new Date().toISOString()
@@ -2300,16 +3119,105 @@ function restoreVirtualContestFromStorage() {
 
 function updateMockButtonStatus() {
   const btn = $("#startVirtualMockButton");
-  if (!btn) return;
+  const navBadge = $("#navLiveBadge");
+  const bottomDot = $("#bottomLiveDot");
   if (virtualContest && !virtualContest.isFinished) {
     const remaining = Math.max(0, Math.floor((virtualContest.endsAt - Date.now()) / 1000));
     const m = Math.floor(remaining / 60);
     const s = remaining % 60;
-    btn.textContent = `🏆 Đang thi Virtual Mock (${m}:${String(s).padStart(2, '0')})`;
-    btn.classList.add('live-contest-active');
+    const timeStr = `${m}:${String(s).padStart(2, '0')}`;
+    if (btn) {
+      btn.textContent = `🏆 Đang thi Virtual Mock (${timeStr})`;
+      btn.classList.add('live-contest-active');
+    }
+    if (navBadge) {
+      navBadge.textContent = timeStr;
+      navBadge.classList.remove('hidden');
+    }
+    if (bottomDot) bottomDot.classList.remove('hidden');
   } else {
-    btn.textContent = `🏆 Bắt đầu Virtual Mock (Thi thử)`;
-    btn.classList.remove('live-contest-active');
+    if (btn) {
+      btn.textContent = `🏆 Bắt đầu Virtual Mock (Thi thử)`;
+      btn.classList.remove('live-contest-active');
+    }
+    if (navBadge) navBadge.classList.add('hidden');
+    if (bottomDot) bottomDot.classList.add('hidden');
+  }
+}
+
+function switchAppTab(tabId) {
+  const validTabs = ["dashboard", "roadmap", "mock", "ai-coach", "review"];
+  if (!validTabs.includes(tabId)) tabId = "dashboard";
+  currentActiveTab = tabId;
+
+  // Update top desktop tabs
+  document.querySelectorAll("#mainNav .nav-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+
+  // Update mobile bottom tabs
+  document.querySelectorAll("#mobileBottomNav .bottom-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+
+  // Update tab panes
+  document.querySelectorAll(".tab-pane").forEach((pane) => {
+    pane.classList.toggle("active", pane.dataset.tabPane === tabId);
+  });
+
+  try {
+    localStorage.setItem("olp2026-active-tab", tabId);
+    if (window.location.hash !== `#${tabId}`) {
+      history.replaceState(null, "", `#${tabId}`);
+    }
+  } catch (e) {}
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function initAppTabs() {
+  const hash = window.location.hash.replace("#", "");
+  const saved = localStorage.getItem("olp2026-active-tab");
+  const initial = hash || saved || "dashboard";
+  switchAppTab(initial);
+
+  document.querySelectorAll("#mainNav .nav-tab, #mobileBottomNav .bottom-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.tab) switchAppTab(btn.dataset.tab);
+    });
+  });
+
+  // Dashboard shortcut cards
+  document.querySelectorAll("[data-nav-target]").forEach((card) => {
+    card.addEventListener("click", () => {
+      const target = card.dataset.navTarget;
+      if (target) switchAppTab(target);
+    });
+  });
+
+  window.addEventListener("hashchange", () => {
+    const newHash = window.location.hash.replace("#", "");
+    if (newHash) switchAppTab(newHash);
+  });
+
+  // Exercise search input
+  const searchInput = $("#exerciseSearchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      exerciseSearchQuery = e.target.value;
+      renderExercises();
+    });
+  }
+  const clearSearchBtn = $("#clearExerciseSearchBtn");
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener("click", () => {
+      if (searchInput) {
+        searchInput.value = "";
+        exerciseSearchQuery = "";
+        renderExercises();
+        searchInput.focus();
+      }
+    });
   }
 }
 
@@ -2325,6 +3233,12 @@ $("#contestProblemSetSelect")?.addEventListener('change', () => {
   previewContestProblems = getProposedContestProblems(strategy);
   renderContestSetupPreview();
 });
+$("#contestDurationSelect")?.addEventListener('change', () => {
+  const strategy = $("#contestProblemSetSelect")?.value || 'standard';
+  previewContestProblems = getProposedContestProblems(strategy);
+  renderContestSetupPreview();
+});
+$("#shareContestLinkBtn")?.addEventListener('click', copyShareContestLink);
 $("#launchContestBtn")?.addEventListener('click', launchVirtualContest);
 $("#pauseResumeContestBtn")?.addEventListener('click', togglePauseResumeContest);
 $("#finishContestEarlyBtn")?.addEventListener('click', () => finishVirtualContest(true));
@@ -2333,7 +3247,856 @@ $("#closeContestSummaryBtn")?.addEventListener('click', () => $("#contestArenaDi
 $("#saveContestToHistoryBtn")?.addEventListener('click', saveContestToHistory);
 $("#aiPostMortemBtn")?.addEventListener('click', runAIPostMortem);
 
+// ============================================================================
+// V7.0 CP ARSENAL: CONSTRAINT TO BIG-O CALCULATOR
+// ============================================================================
+function formatBigOps(ops) {
+  if (ops === Infinity || ops > 1e16) return "> 10¹⁶ (Vô hạn)";
+  if (ops >= 1e12) return `~ ${(ops / 1e12).toFixed(1)} · 10¹²`;
+  if (ops >= 1e9) return `~ ${(ops / 1e9).toFixed(1)} · 10⁹`;
+  if (ops >= 1e6) return `~ ${(ops / 1e6).toFixed(1)} · 10⁶`;
+  if (ops >= 1e3) return `~ ${(ops / 1e3).toFixed(1)} · 10³`;
+  return String(Math.round(ops));
+}
+
+function updateConstraintCalculator() {
+  const nVal = Number($("#calcNSelect")?.value || 100000);
+  const timeSec = Number($("#calcTimeSelect")?.value || 1.0);
+  const budgetOps = Math.round(1e8 * timeSec);
+
+  if ($("#calcBudgetOps")) {
+    $("#calcBudgetOps").textContent = `${budgetOps.toLocaleString('vi-VN')} ops (${timeSec}s)`;
+  }
+
+  const complexities = [
+    {
+      name: "O(1)",
+      calc: () => 1,
+      algs: "Công thức toán, phép toán bit, tra mảng / hash O(1)"
+    },
+    {
+      name: "O(log N)",
+      calc: (N) => Math.log2(Math.max(2, N)),
+      algs: "Binary Search, Lũy thừa nhị phân, GCD, LCA Binary Lifting"
+    },
+    {
+      name: "O(√N)",
+      calc: (N) => Math.sqrt(N),
+      algs: "Kiểm tra số nguyên tố, phân tích thừa số, chia căn cơ bản"
+    },
+    {
+      name: "O(N)",
+      calc: (N) => N,
+      algs: "Duyệt tuyến tính, Two Pointers, Prefix Sum, Kadane, Sieve"
+    },
+    {
+      name: "O(N log N)",
+      calc: (N) => N * Math.log2(Math.max(2, N)),
+      algs: "std::sort, Segment Tree, Fenwick, Dijkstra, Chia để trị"
+    },
+    {
+      name: "O(N √N)",
+      calc: (N) => N * Math.sqrt(N),
+      algs: "Mo's Algorithm, Phân rã khối căn (Sqrt Decomposition)"
+    },
+    {
+      name: "O(N²)",
+      calc: (N) => (N <= 1e6 ? N * N : Infinity),
+      algs: "2 vòng for lồng nhau, Floyd-Warshall nhỏ, DP 2 chiều bảng n×n"
+    },
+    {
+      name: "O(N³)",
+      calc: (N) => (N <= 2000 ? N * N * N : Infinity),
+      algs: "Nhân ma trận cơ bản, Floyd-Warshall trên đồ thị N ≤ 400"
+    },
+    {
+      name: "O(2^(N/2))",
+      calc: (N) => (N <= 80 ? Math.pow(2, Math.floor(N / 2)) : Infinity),
+      algs: "Meet-in-the-middle (chia đôi tập hợp N ≤ 40)"
+    },
+    {
+      name: "O(2^N · N)",
+      calc: (N) => (N <= 26 ? Math.pow(2, N) * N : Infinity),
+      algs: "Bitmask DP (TSP, Hamiltonian Path N ≤ 20)"
+    },
+    {
+      name: "O(N!)",
+      calc: (N) => {
+        if (N > 13) return Infinity;
+        let p = 1;
+        for (let i = 2; i <= N; i++) p *= i;
+        return p;
+      },
+      algs: "Sinh hoán vị toàn phần, quay lui vét cạn (N ≤ 11)"
+    }
+  ];
+
+  const tbody = $("#calcTableBody");
+  if (!tbody) return;
+
+  tbody.innerHTML = complexities.map(c => {
+    const ops = c.calc(nVal);
+    let tag = '';
+    let rowClass = '';
+
+    if (ops <= budgetOps) {
+      tag = `<span class="calc-tag pass">✓ AN TOÀN (${Math.round((ops / budgetOps) * 100)}%)</span>`;
+    } else if (ops <= budgetOps * 2.5) {
+      tag = `<span class="calc-tag tight">⚠️ CÂN NHẮC (SÁT GIỜ)</span>`;
+      rowClass = 'row-tight';
+    } else {
+      tag = `<span class="calc-tag fail">❌ TLE (VƯỢT NGÂN SÁCH)</span>`;
+      rowClass = 'row-fail';
+    }
+
+    return `
+      <tr class="${rowClass}">
+        <td><strong>${c.name}</strong></td>
+        <td><code>${formatBigOps(ops)}</code></td>
+        <td>${tag}</td>
+        <td><small>${escapeHTML(c.algs)}</small></td>
+      </tr>
+    `;
+  }).join('');
+
+  const tipsBox = $("#calcTipsBox");
+  if (tipsBox) {
+    let tip = "";
+    if (nVal <= 12) {
+      tip = `<strong>Lời khuyên cho N ≤ 12:</strong> Thích hợp nhất cho <code>O(N!)</code> (duyệt hoán vị bằng <code>std::next_permutation</code>) hoặc nhánh cận. Với N này không cần cấu trúc dữ liệu phức tạp.`;
+    } else if (nVal <= 20) {
+      tip = `<strong>Lời khuyên cho N ≤ 20:</strong> Nghĩ ngay đến <strong>Bitmask DP</strong> với $2^N = 1,048,576$ trạng thái. Phép toán bit <code>(1 << i)</code> và <code>__builtin_popcount</code> giúp giải quyết trong < 0.2s.`;
+    } else if (nVal <= 40) {
+      tip = `<strong>Lời khuyên cho N ≤ 40:</strong> $2^{40} \\approx 10^{12}$ là quá lớn, nhưng $2^{20} \\approx 10^6$. Kỹ thuật vàng là <strong>Meet-in-the-middle</strong>: chia đôi tập thành 2 nửa 20 phần tử, sinh mảng rồi dùng Binary Search/Two Pointers ghép lại.`;
+    } else if (nVal <= 400) {
+      tip = `<strong>Lời khuyên cho N ≤ 400:</strong> $N^3 \\approx 6.4 \\cdot 10^7$ phép tính. Chạy mượt mà cho <strong>Floyd-Warshall</strong> tìm đường đi ngắn nhất mọi cặp đỉnh hoặc DP 3 chiều.`;
+    } else if (nVal <= 5000) {
+      tip = `<strong>Lời khuyên cho N ≤ 5,000:</strong> $N^2 \\approx 2.5 \\cdot 10^7$ phép tính. Cho phép dùng 2 vòng lặp lồng nhau hoặc DP bảng $O(N^2)$. Lưu ý hạn chế cấp phát vector trong vòng lặp sâu.`;
+    } else if (nVal <= 200000) {
+      tip = `<strong>Lời khuyên cho N = 10⁵ – 2·10⁵ (Rất phổ biến trong OLP/ICPC):</strong> Giới hạn chuẩn cho các giải thuật $O(N \\log N)$ và $O(N)$. Sử dụng <strong>Segment Tree, Fenwick, Sorting, Dijkstra</strong>. Thuật toán $O(N^2)$ với $4 \\cdot 10^{10}$ ops sẽ chắc chắn bị TLE!`;
+    } else if (nVal <= 10000000) {
+      tip = `<strong>Lời khuyên cho N = 10⁶ – 10⁷:</strong> Cần giải thuật tuyến tính <strong>$O(N)$</strong> hoặc $O(N \\log N)$ cực nhẹ. Sử dụng <strong>I/O tối ưu</strong> (<code>cin.tie(NULL)</code>, <code>\\n</code> thay vì <code>endl</code>) và mảng phẳng thay vì map/set.`;
+    } else {
+      tip = `<strong>Lời khuyên cho N ≥ 10¹² (N cực lớn):</strong> Chỉ có các giải thuật $O(\\log N)$ hoặc $O(\\sqrt{N})$ mới qua được. Tìm kiếm nhị phân trên tập kết quả (BS on Answer), nhân ma trận nhị phân (Matrix Exponentiation), hoặc công thức Toán học.`;
+    }
+    tipsBox.innerHTML = tip;
+  }
+}
+
+// ============================================================================
+// V7.0 CP ARSENAL: C++ STRESS TEST SUITE GENERATOR
+// ============================================================================
+let activeStressTab = 'gen';
+
+function getStressCodeTemplates(type = 'array', size = 'small') {
+  const nLimit = size === 'small' ? '10' : '500';
+  const aLimit = size === 'small' ? '20' : '100000';
+
+  let genCode = '';
+  let bruteCode = '';
+  let solCode = '';
+
+  if (type === 'array') {
+    genCode = `// gen.cpp - Sinh test ngẫu nhiên cho mảng số nguyên
+#include <iostream>
+#include <random>
+#include <chrono>
+
+using namespace std;
+
+int main(int argc, char* argv[]) {
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    auto randInt = [&](long long l, long long r) {
+        return uniform_int_distribution<long long>(l, r)(rng);
+    };
+
+    int n = randInt(1, ${nLimit});
+    long long k = randInt(1, ${aLimit});
+    cout << n << " " << k << "\\n";
+    for (int i = 0; i < n; ++i) {
+        cout << randInt(1, ${aLimit}) << (i + 1 == n ? "" : " ");
+    }
+    cout << "\\n";
+    return 0;
+}`;
+
+    bruteCode = `// brute.cpp - Thuật toán trâu O(N^2) đúng 100% để đối chiếu
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    long long k;
+    if (!(cin >> n >> k)) return 0;
+    vector<long long> a(n);
+    for (int i = 0; i < n; ++i) cin >> a[i];
+
+    long long ans = 0;
+    for (int i = 0; i < n; ++i) {
+        long long sum = 0;
+        for (int j = i; j < n; ++j) {
+            sum += a[j];
+            if (sum <= k) ans++;
+        }
+    }
+    cout << ans << "\\n";
+    return 0;
+}`;
+
+    solCode = `// sol.cpp - Code tối ưu O(N) / O(N log N) của bạn (đang cần debug WA)
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    long long k;
+    if (!(cin >> n >> k)) return 0;
+    vector<long long> a(n);
+    for (int i = 0; i < n; ++i) cin >> a[i];
+
+    int l = 0;
+    long long current = 0, ans = 0;
+    for (int r = 0; r < n; ++r) {
+        current += a[r];
+        while (l <= r && current > k) {
+            current -= a[l++];
+        }
+        ans += (r - l + 1);
+    }
+    cout << ans << "\\n";
+    return 0;
+}`;
+  } else if (type === 'range_queries') {
+    genCode = `// gen.cpp - Sinh test ngẫu nhiên cho Truy vấn đoạn (Range Queries)
+#include <iostream>
+#include <random>
+#include <chrono>
+
+using namespace std;
+
+int main() {
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    auto randInt = [&](long long l, long long r) {
+        return uniform_int_distribution<long long>(l, r)(rng);
+    };
+
+    int n = randInt(1, ${nLimit});
+    int q = randInt(1, ${nLimit});
+    cout << n << " " << q << "\\n";
+    for (int i = 0; i < n; ++i) cout << randInt(1, 100) << (i + 1 == n ? "" : " ");
+    cout << "\\n";
+
+    for (int i = 0; i < q; ++i) {
+        int type = randInt(1, 2);
+        if (type == 1) {
+            cout << 1 << " " << randInt(1, n) << " " << randInt(1, 100) << "\\n";
+        } else {
+            int l = randInt(1, n);
+            int r = randInt(l, n);
+            cout << 2 << " " << l << " " << r << "\\n";
+        }
+    }
+    return 0;
+}`;
+
+    bruteCode = `// brute.cpp - Mô phỏng trực tiếp trên mảng O(Q*N)
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, q;
+    if (!(cin >> n >> q)) return 0;
+    vector<long long> a(n + 1);
+    for (int i = 1; i <= n; ++i) cin >> a[i];
+
+    while (q--) {
+        int type; cin >> type;
+        if (type == 1) {
+            int p; long long v; cin >> p >> v;
+            a[p] = v;
+        } else {
+            int l, r; cin >> l >> r;
+            long long s = 0;
+            for (int i = l; i <= r; ++i) s += a[i];
+            cout << s << "\\n";
+        }
+    }
+    return 0;
+}`;
+
+    solCode = `// sol.cpp - Cây Fenwick (BIT) hoặc Segment Tree O(Q log N) của bạn
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct Fenwick {
+    int n;
+    vector<long long> tree;
+    Fenwick(int n) : n(n), tree(n + 1, 0) {}
+    void add(int i, long long delta) {
+        for (; i <= n; i += i & -i) tree[i] += delta;
+    }
+    long long query(int i) {
+        long long sum = 0;
+        for (; i > 0; i -= i & -i) sum += tree[i];
+        return sum;
+    }
+    long long query(int l, int r) {
+        return query(r) - query(l - 1);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, q;
+    if (!(cin >> n >> q)) return 0;
+    vector<long long> a(n + 1);
+    Fenwick bit(n);
+    for (int i = 1; i <= n; ++i) {
+        cin >> a[i];
+        bit.add(i, a[i]);
+    }
+
+    while (q--) {
+        int type; cin >> type;
+        if (type == 1) {
+            int p; long long v; cin >> p >> v;
+            bit.add(p, v - a[p]);
+            a[p] = v;
+        } else {
+            int l, r; cin >> l >> r;
+            cout << bit.query(l, r) << "\\n";
+        }
+    }
+    return 0;
+}`;
+  } else if (type === 'graph') {
+    genCode = `// gen.cpp - Sinh cây ngẫu nhiên liên thông N đỉnh
+#include <iostream>
+#include <random>
+#include <chrono>
+
+using namespace std;
+
+int main() {
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    auto randInt = [&](int l, int r) {
+        return uniform_int_distribution<int>(l, r)(rng);
+    };
+
+    int n = randInt(2, ${nLimit});
+    cout << n << "\\n";
+    for (int i = 2; i <= n; ++i) {
+        int p = randInt(1, i - 1);
+        int w = randInt(1, 100);
+        cout << p << " " << i << " " << w << "\\n";
+    }
+    return 0;
+}`;
+
+    bruteCode = `// brute.cpp - DFS trâu duyệt từng truy vấn O(N)
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct Edge { int to, weight; };
+vector<vector<Edge>> adj;
+
+bool dfs(int u, int p, int target, long long current, long long &ans) {
+    if (u == target) { ans = current; return true; }
+    for (auto &e : adj[u]) {
+        if (e.to != p) {
+            if (dfs(e.to, u, target, current + e.weight, ans)) return true;
+        }
+    }
+    return false;
+}
+
+int main() {
+    int n;
+    if (!(cin >> n)) return 0;
+    adj.assign(n + 1, {});
+    for (int i = 0; i < n - 1; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+    long long dist = 0;
+    dfs(1, 0, n, 0, dist);
+    cout << dist << "\\n";
+    return 0;
+}`;
+
+    solCode = `// sol.cpp - Cài đặt LCA / Dijkstra O(log N) của bạn
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+    return 0;
+}`;
+  } else {
+    genCode = `// gen.cpp - Sinh xâu ký tự ngẫu nhiên
+#include <iostream>
+#include <random>
+#include <chrono>
+#include <string>
+
+using namespace std;
+
+int main() {
+    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    auto randInt = [&](int l, int r) {
+        return uniform_int_distribution<int>(l, r)(rng);
+    };
+
+    int n = randInt(1, ${nLimit});
+    string s = "";
+    for (int i = 0; i < n; ++i) s += (char)('a' + randInt(0, 2));
+    cout << s << "\\n";
+    return 0;
+}`;
+
+    bruteCode = `// brute.cpp - So sánh xâu trâu O(N^2)
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+    string s;
+    if (!(cin >> s)) return 0;
+    int n = s.length();
+    int ans = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = i; j < n; ++j) {
+            string sub = s.substr(i, j - i + 1);
+            string rev(sub.rbegin(), sub.rend());
+            if (sub == rev) ans++;
+        }
+    }
+    cout << ans << "\\n";
+    return 0;
+}`;
+
+    solCode = `// sol.cpp - Thuật tối ưu Rolling Hash / Manacher O(N)
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    string s;
+    if (!(cin >> s)) return 0;
+    return 0;
+}`;
+  }
+
+  const scriptBat = `@echo off
+REM ==========================================
+REM STRESS TEST SCRIPT CHO WINDOWS (CMD / BAT)
+REM ==========================================
+echo Dang bien dich cac file C++...
+g++ -O3 -std=c++17 gen.cpp -o gen.exe
+g++ -O3 -std=c++17 brute.cpp -o brute.exe
+g++ -O3 -std=c++17 sol.cpp -o sol.exe
+
+if errorlevel 1 (
+    echo [ERROR] Bien dich that bai! Kiem tra lai cu phap C++.
+    pause
+    exit /b 1
+)
+
+echo Bat dau chay Stress Test tim bug...
+set /a count=0
+
+:loop
+set /a count+=1
+gen.exe > in.txt
+brute.exe < in.txt > out_brute.txt
+sol.exe < in.txt > out_sol.txt
+
+fc /w out_brute.txt out_sol.txt > nul
+if errorlevel 1 goto wrong
+
+if %count% geq 2000 (
+    echo [PASS] Da chay qua 2000 test ngau nhien deu dung!
+    pause
+    exit /b 0
+)
+
+echo [OK] Test #%count% PASSED
+goto loop
+
+:wrong
+echo.
+echo ==========================================
+echo [FAILED] DA PHAT HIEN TEST SAI TAI TEST #%count%!
+echo ==========================================
+echo --- INPUT ---
+type in.txt
+echo.
+echo --- DAP AN CHUAN (BRUTE) ---
+type out_brute.txt
+echo.
+echo --- CODE CUA BAN (SOL) ---
+type out_sol.txt
+echo ==========================================
+pause
+exit /b 1
+`;
+
+  return { gen: genCode, brute: bruteCode, sol: solCode, script: scriptBat };
+}
+
+function renderStressTestSuite() {
+  const type = $("#stressTemplateSelect")?.value || 'array';
+  const size = $("#stressSizeSelect")?.value || 'small';
+  const templates = getStressCodeTemplates(type, size);
+  const codeArea = $("#stressCodeArea");
+  if (codeArea) {
+    codeArea.value = templates[activeStressTab] || templates.gen;
+  }
+}
+
+function downloadStressScript() {
+  const templates = getStressCodeTemplates($("#stressTemplateSelect")?.value || 'array', $("#stressSizeSelect")?.value || 'small');
+  const blob = new Blob([templates.script], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'stress.bat';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Đã tải script stress.bat về máy!");
+}
+
+// ============================================================================
+// V7.0 AI COUNTER-TEST & CORNER CASE HUNTER
+// ============================================================================
+function generateHeuristicCounterTests(topicId, suspect, problemDesc) {
+  const cornerCasesMap = {
+    corner_cases: [
+      {
+        title: "Test 1: Biên kích thước cực tiểu (N = 1 hoặc K = 0)",
+        input: "1 0\n42",
+        expected: "Kết quả đơn phần tử hoặc 0",
+        buggy: "Crash (IndexOutOfBounds, chia cho 0, hoặc vòng lặp r >= l không kích hoạt)",
+        reason: "Hầu hết code chỉ test với N >= 2 hoặc 3. Khi N=1, các phép gán a[i-1] hoặc kiểm tra 2 con trỏ l < r sẽ bỏ sót phần tử duy nhất hoặc truy cập ngoài mảng.",
+        fix: "Thêm if (n <= 1) xử lý trực tiếp trường hợp cơ sở ở đầu hàm main."
+      },
+      {
+        title: "Test 2: Mọi phần tử đều đạt cận cực đại (Boundary Extremes)",
+        input: "5 1000000000\n1000000000 1000000000 1000000000 1000000000 1000000000",
+        expected: "Tính toán chính xác bằng số nguyên 64-bit",
+        buggy: "Số âm hoặc giá trị bị overflow modulo 2^32",
+        reason: "Khi tính tổng mảng, prefix sum hoặc nhân tích, tổng vượt quá 2·10⁹ làm tràn kiểu int 32-bit có dấu.",
+        fix: "Đổi toàn bộ biến tính tổng và mảng lưu trữ sang long long (int64_t)."
+      },
+      {
+        title: "Test 3: Dữ liệu phân cực (Số cực nhỏ xen kẽ cực lớn)",
+        input: "4 1000\n0 1000000000 0 1000000000",
+        expected: "Xử lý trơn tru các bước nhảy giá trị lớn",
+        buggy: "Chặt nhị phân chọn cận low/high sai hoặc Two Pointers bị đứng yên",
+        reason: "Sự chênh lệch giữa các giá trị 0 và 10⁹ phá vỡ giả định về bước tăng đều."
+      }
+    ],
+    overflow: [
+      {
+        title: "Test 1: Tổng cộng dồn vượt giới hạn 32-bit Signed Int",
+        input: "100000\n1000000000 1000000000 ... (10⁵ số 10⁹)",
+        expected: "Tổng = 10¹⁴ (Yêu cầu long long)",
+        buggy: "In ra số âm ngẫu nhiên như -1530494976",
+        reason: "Biến lưu tổng khởi tạo là int sum = 0 thay vì long long sum = 0.",
+        fix: "Thay #define int long long hoặc kiểm tra chặt chẽ kiểu trả về của các hàm cộng dồn."
+      },
+      {
+        title: "Test 2: Phép nhân trung gian tràn trước khi Modulo",
+        input: "a = 1000000000, b = 1000000000, MOD = 1000000007",
+        expected: "(a * b) % MOD = 49",
+        buggy: "-27 (Số âm) hoặc sai hoàn toàn",
+        reason: "Code viết (a * b) % MOD với a, b là int. Tích a * b được tính trên kiểu int trước khi modulo, gây tràn số.",
+        fix: "Ép kiểu (1LL * a * b) % MOD hoặc khai báo long long a, b."
+      },
+      {
+        title: "Test 3: Phép chia lấy dư của số âm trong C++",
+        input: "a = -5, MOD = 3",
+        expected: "Kết quả đúng trong toán học đồng dư: 1",
+        buggy: "C++ trả về -2 (do toán tử % của C++ giữ dấu của số bị chia)",
+        reason: "Trong C++, (-5) % 3 = -2. Nếu dùng làm chỉ số mảng sẽ gây runtime error Out of Bounds.",
+        fix: "Luôn dùng công thức chuẩn: (val % MOD + MOD) % MOD."
+      }
+    ],
+    graph_degeneracy: [
+      {
+        title: "Test 1: Cây suy biến thành một đường thẳng dài (Line Graph / Bamboo)",
+        input: "100000\n1 2\n2 3\n3 4\n...\n99999 100000",
+        expected: "Duyệt hết các đỉnh trong O(N)",
+        buggy: "Segmentation Fault / Crash (Stack Overflow)",
+        reason: "Hàm đệ quy DFS đi sâu 10⁵ tầng vượt quá dung lượng call stack mặc định của máy chấm OLP (~8MB - 64MB).",
+        fix: "Chuyển sang DFS dùng stack riêng hoặc dùng BFS."
+      },
+      {
+        title: "Test 2: Đồ thị không liên thông (Disconnected Components)",
+        input: "N = 5, M = 2\n1 2\n3 4\n(Đỉnh 5 hoàn toàn cô lập)",
+        expected: "Duyệt từng thành phần liên thông riêng biệt",
+        buggy: "Bỏ sót đỉnh 5 hoặc lặp vô tận",
+        reason: "Code chỉ gọi dfs(1) mà không có vòng for duyệt qua mọi đỉnh for (int i = 1; i <= n; ++i) if (!visited[i]).",
+        fix: "Bao bọc hàm duyệt bằng vòng lặp kiểm tra toàn bộ tập đỉnh từ 1 đến N."
+      },
+      {
+        title: "Test 3: Đồ thị có đa cạnh (Multiple Edges) và khuyên (Self-loops)",
+        input: "N = 3, M = 4\n1 2 5\n1 2 2\n2 2 10\n2 3 1",
+        expected: "Dijkstra chọn cạnh trọng số 2 giữa đỉnh 1 và 2",
+        buggy: "Ghi đè trọng số cạnh cũ bằng cạnh lớn hơn hoặc kẹt tại khuyên 2-2",
+        reason: "Nếu dùng ma trận kề, adj[u][v] = w sẽ ghi đè trọng số cạnh tốt hơn.",
+        fix: "Dùng danh sách kề hoặc lấy adj[u][v] = min(adj[u][v], w)."
+      }
+    ],
+    duplicates: [
+      {
+        title: "Test 1: Toàn bộ phần tử trong mảng giống hệt nhau",
+        input: "10\n5 5 5 5 5 5 5 5 5 5",
+        expected: "Sắp xếp hoặc xử lý trong thời gian O(N)",
+        buggy: "Vòng lặp vô tận trong QuickSort hoặc Segmentation Fault trong std::sort",
+        reason: "Comparator của hàm sort viết return a <= b; vi phạm Strict Weak Ordering.",
+        fix: "Luôn dùng dấu < nghiêm ngặt trong comparator: return a.val < b.val;."
+      },
+      {
+        title: "Test 2: Mảng toàn giá trị âm (All Negative Elements)",
+        input: "5\n-10 -5 -20 -3 -100",
+        expected: "Dãy con có tổng lớn nhất = -3",
+        buggy: "In ra 0",
+        reason: "Thuật toán Kadane khởi tạo max_sum = 0 thay vì -INF hoặc a[0].",
+        fix: "Khởi tạo biến max bằng -1e18 hoặc a[0] trước khi duyệt mảng."
+      },
+      {
+        title: "Test 3: Mảng đã được sắp xếp sẵn (Anti-QuickSort)",
+        input: "1 2 3 4 5 6 7 8 9 10",
+        expected: "Chạy nhanh O(N log N)",
+        buggy: "Bị suy biến thành O(N²)",
+        reason: "Nếu tự viết QuickSort và chọn pivot là phần tử đầu tiên hoặc cuối cùng, mảng đã sắp xếp sẽ kích hoạt trường hợp tệ nhất.",
+        fix: "Chọn pivot ngẫu nhiên bằng rng() hoặc dùng std::sort có sẵn Introsort."
+      }
+    ],
+    tle_killer: [
+      {
+        title: "Test 1: Test sinh xung đột băm (Anti-Hash Test)",
+        input: "Dãy số tự chế gây va chạm Rolling Hash modulo 10^9+7",
+        expected: "Phân biệt chính xác các chuỗi con khác nhau",
+        buggy: "Bị Wrong Answer do nhiều chuỗi khác nhau sinh ra cùng mã Hash",
+        reason: "Dùng base cố định như 31, 311 hoặc một số nguyên tố quen thuộc bị test maker chủ động dựng phản ví dụ.",
+        fix: "Dùng Double Hash (2 modulo khác nhau ví dụ 10^9+7 và 10^9+9) và chọn base ngẫu nhiên bằng chrono."
+      },
+      {
+        title: "Test 2: Thao tác tồi tệ nhất trên std::unordered_map",
+        input: "100000 phần tử có dạng k * (2^64 / 107897)",
+        expected: "Tra cứu O(1)",
+        buggy: "Bị TLE do suy biến thành O(N) mỗi thao tác",
+        reason: "Hàm băm mặc định của std::unordered_map trong GCC dễ bị tấn công đẩy tất cả key vào chung 1 bucket.",
+        fix: "Sử dụng custom hash với hàm SplitMix64 hoặc dùng mảng đánh dấu / std::map."
+      },
+      {
+        title: "Test 3: Truy vấn đoạn lặp đi lặp lại cùng một vị trí",
+        input: "100000 truy vấn cập nhật điểm x=1 và truy vấn [1, N]",
+        expected: "Xử lý O(Q log N)",
+        buggy: "TLE nếu dùng thuật toán chia căn không cân bằng",
+        reason: "Kiểm tra giới hạn chịu tải khi dữ liệu bị dồn vào một điểm duy nhất."
+      }
+    ]
+  };
+
+  return cornerCasesMap[suspect] || cornerCasesMap.corner_cases;
+}
+
+async function runCounterTest(e) {
+  if (e) e.preventDefault();
+  const topicId = $("#counterTestTopic")?.value || "containers";
+  const suspect = $("#counterTestSuspect")?.value || "corner_cases";
+  const problemDesc = $("#counterTestProblem")?.value?.trim() || "";
+  const codeInput = $("#counterTestCode")?.value?.trim() || "";
+
+  const submitBtn = $("#startCounterTestBtn");
+  const statusEl = $("#counterTestStatus");
+  const emptyEl = $("#counterTestEmpty");
+  const resultEl = $("#counterTestResult");
+  const titleEl = $("#counterTestResultTitle");
+
+  submitBtn?.setAttribute("disabled", "");
+  submitBtn?.classList.add("ai-loading");
+  if (statusEl) {
+    statusEl.textContent = "Coach đang săn corner cases...";
+    statusEl.className = "ai-status loading";
+  }
+
+  let cornerTests = [];
+  let aiSummary = "";
+
+  const client = initCloudClient();
+  if (client && cloudUser && (problemDesc || codeInput)) {
+    try {
+      const { data, error } = await client.functions.invoke('ai-coach', {
+        body: {
+          task: 'counter_test',
+          context: buildAIContext(),
+          input: { topicId, suspect, problem: problemDesc, code: codeInput }
+        }
+      });
+      if (!error && data?.result?.tests?.length) {
+        cornerTests = data.result.tests;
+        aiSummary = data.result.summary || "";
+      }
+    } catch (err) {
+      console.warn("AI Coach remote call failed, using high-precision heuristic hunter", err);
+    }
+  }
+
+  if (!cornerTests.length) {
+    cornerTests = generateHeuristicCounterTests(topicId, suspect, problemDesc);
+    aiSummary = `Đã phân tích các điểm giả định ngầm của dạng bài theo bẫy "${$("#counterTestSuspect")?.selectedOptions?.[0]?.text || suspect}". Dưới đây là 3 test case biên tối thiểu:`;
+  }
+
+  if (emptyEl) emptyEl.classList.add("hidden");
+  if (resultEl) {
+    resultEl.classList.remove("hidden");
+    resultEl.innerHTML = `
+      <div class="counter-test-summary">
+        <p><strong>🎯 Đánh giá của Coach:</strong> ${escapeHTML(aiSummary)}</p>
+      </div>
+      <div class="counter-test-cards">
+        ${cornerTests.map((t, idx) => `
+          <article class="counter-test-card glass">
+            <div class="counter-test-card-head">
+              <span class="counter-badge">Test #${idx + 1}</span>
+              <strong>${escapeHTML(t.title || `Corner Case #${idx + 1}`)}</strong>
+            </div>
+            <div class="counter-test-code-wrap">
+              <label>Input tối thiểu:</label>
+              <pre class="counter-input-pre"><code>${escapeHTML(t.input || '')}</code></pre>
+              <button class="secondary-button compact-button copy-input-btn" type="button" onclick="copyTextToClipboard('${escapeHTML(t.input || '').replace(/\n/g, '\\n')}')">📋 Copy Input</button>
+            </div>
+            <div class="counter-test-diff">
+              <div class="diff-box expected">
+                <small>Kỳ vọng chuẩn:</small>
+                <strong>${escapeHTML(t.expected || '')}</strong>
+              </div>
+              <div class="diff-box buggy">
+                <small>Code lỗi hay ra:</small>
+                <strong>${escapeHTML(t.buggy || '')}</strong>
+              </div>
+            </div>
+            <p class="counter-reason"><strong>Lý do test này giết code:</strong> ${escapeHTML(t.reason || '')}</p>
+            ${t.fix ? `<p class="counter-fix"><strong>Cách sửa nhanh:</strong> ${escapeHTML(t.fix)}</p>` : ''}
+          </article>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  if (titleEl) titleEl.textContent = `Tìm thấy ${cornerTests.length} test phản ví dụ`;
+  if (statusEl) {
+    statusEl.textContent = "Hoàn tất phân tích";
+    statusEl.className = "ai-status ready";
+  }
+  submitBtn?.removeAttribute("disabled");
+  submitBtn?.classList.remove("ai-loading");
+  showToast("Đã sinh 3 test case phản ví dụ!");
+}
+
+window.copyTextToClipboard = function(text) {
+  const unescaped = text.replace(/\\n/g, '\n');
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(unescaped).then(() => showToast("Đã chép test input vào clipboard!"));
+  } else {
+    prompt("Sao chép input:", unescaped);
+  }
+};
+
+// Wire CP Arsenal Events
+$("#openBigOCalcBtn")?.addEventListener('click', () => {
+  $("#constraintCalcDialog")?.showModal();
+  updateConstraintCalculator();
+});
+$("#closeConstraintCalcBtn")?.addEventListener('click', () => $("#constraintCalcDialog")?.close());
+$("#calcNSelect")?.addEventListener('change', updateConstraintCalculator);
+$("#calcTimeSelect")?.addEventListener('change', updateConstraintCalculator);
+
+$("#openStressTestModalBtn")?.addEventListener('click', () => {
+  $("#stressTestDialog")?.showModal();
+  renderStressTestSuite();
+});
+$("#triggerStressModalFromAI")?.addEventListener('click', () => {
+  $("#stressTestDialog")?.showModal();
+  renderStressTestSuite();
+});
+$("#closeStressTestBtn")?.addEventListener('click', () => $("#stressTestDialog")?.close());
+$("#stressTemplateSelect")?.addEventListener('change', renderStressTestSuite);
+$("#stressSizeSelect")?.addEventListener('change', renderStressTestSuite);
+
+document.querySelectorAll('.stress-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stress-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeStressTab = btn.dataset.stressTab;
+    renderStressTestSuite();
+  });
+});
+
+$("#copyStressCodeBtn")?.addEventListener('click', () => {
+  const code = $("#stressCodeArea")?.value;
+  if (code) {
+    navigator.clipboard.writeText(code).then(() => showToast("Đã chép mã nguồn vào clipboard!"));
+  }
+});
+$("#downloadStressFilesBtn")?.addEventListener('click', downloadStressScript);
+
+// Wire Counter Test Form
+$("#counterTestForm")?.addEventListener('submit', runCounterTest);
+$("#clearCounterTestBtn")?.addEventListener('click', () => {
+  if ($("#counterTestProblem")) $("#counterTestProblem").value = '';
+  if ($("#counterTestCode")) $("#counterTestCode").value = '';
+  $("#counterTestEmpty")?.classList.remove('hidden');
+  $("#counterTestResult")?.classList.add('hidden');
+  if ($("#counterTestResultTitle")) $("#counterTestResultTitle").textContent = 'Chưa có kết quả';
+  if ($("#counterTestStatus")) {
+    $("#counterTestStatus").textContent = 'Sẵn sàng';
+    $("#counterTestStatus").className = 'ai-status';
+  }
+});
+
 // Init on load
+populateCodeReviewTopics();
 setupBookmarklet();
 checkUrlImportParams();
 restoreVirtualContestFromStorage();
+initAppTabs();
+updateConstraintCalculator();
+renderStressTestSuite();

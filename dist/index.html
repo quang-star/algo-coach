@@ -19,7 +19,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=7" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -37,279 +37,511 @@
         </div>
         <button class="profile-chip" id="profileButton" type="button"><span id="profileInitial">K</span><b id="profileName">Kim Quang</b></button>
         <span class="save-state" id="saveState"><i></i> Đã lưu trên thiết bị</span>
+        <button class="auth-header-btn" id="headerAuthButton" type="button" title="Tài khoản &amp; Đồng bộ đám mây">
+          <span class="auth-status-dot" id="headerAuthDot"></span>
+          <span class="auth-header-icon" id="headerAuthIcon">☁️</span>
+          <span class="auth-header-text" id="headerAuthText">Đăng nhập</span>
+        </button>
         <button class="icon-button" id="cloudSyncButton" type="button" title="Đồng bộ Supabase" aria-label="Đồng bộ cloud"><span class="sync-glyph">↥</span></button>
         <input id="importFileInput" type="file" accept="application/json,.json" hidden />
-        <button class="icon-button" id="cloudSettingsButton" type="button" title="Cài đặt cloud" aria-label="Cài đặt cloud">⚙</button>
+        <button class="icon-button hidden" id="cloudSettingsButton" type="button" title="Cài đặt cloud" aria-label="Cài đặt cloud">⚙</button>
         <button class="icon-button" id="exportButton" type="button" title="Xuất bản sao dữ liệu" aria-label="Xuất dữ liệu">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" /></svg>
         </button>
       </div>
     </header>
 
+    <nav class="main-nav shell" id="mainNav" aria-label="Điều hướng chính">
+      <div class="nav-scroller">
+        <button class="nav-tab active" type="button" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Tổng quan</span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="roadmap">
+          <span class="nav-icon">🗺️</span>
+          <span class="nav-text">Lộ trình &amp; Kho bài</span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="mock">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-text">Thi thử Mock</span>
+          <span class="nav-badge hidden" id="navLiveBadge">LIVE</span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="ai-coach">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-text">AI Coach &amp; Debug</span>
+        </button>
+        <button class="nav-tab" type="button" data-tab="review">
+          <span class="nav-icon">🧠</span>
+          <span class="nav-text">Ôn tập &amp; Sổ lỗi</span>
+        </button>
+      </div>
+    </nav>
+
     <main id="top" class="shell">
-      <section class="hero" aria-labelledby="heroTitle">
-        <div class="hero-copy">
-          <p class="eyebrow"><span></span> UNIVERSITY TRACK · OLP 2026</p>
-          <h1 id="heroTitle">Mỗi ngày một giờ.<br /><em>Đi đúng bài cần học.</em></h1>
-          <p class="hero-subtitle">Lộ trình cân bằng từ nền tảng MarisaOJ đến đề tổng hợp — đủ gọn để mở lên và bắt đầu ngay.</p>
+      <!-- TAB 1: TỔNG QUAN -->
+      <div class="tab-pane active" id="pane-dashboard" data-tab-pane="dashboard">
+        <section class="hero" aria-labelledby="heroTitle">
+          <div class="hero-copy">
+            <p class="eyebrow"><span></span> UNIVERSITY TRACK · OLP 2026</p>
+            <h1 id="heroTitle">Mỗi ngày một giờ.<br /><em>Đi đúng bài cần học.</em></h1>
+            <p class="hero-subtitle">Lộ trình cân bằng từ nền tảng MarisaOJ đến đề tổng hợp — đủ gọn để mở lên và bắt đầu ngay.</p>
+          </div>
+
+          <div class="readiness-card glass">
+            <div class="readiness-topline">
+              <span>Độ sẵn sàng OLP</span>
+              <strong id="readinessValue">0%</strong>
+            </div>
+            <div class="meter"><span id="readinessBar"></span></div>
+            <div class="readiness-grid">
+              <div><strong id="solvedTotal">0</strong><span>bài đã xong</span></div>
+              <div><strong id="studyHours">0h</strong><span>giờ tập trung</span></div>
+              <div><strong id="mockTotal">0</strong><span>mixed mock</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="dashboard" aria-labelledby="todayTitle">
+          <article class="next-card">
+            <div class="card-heading">
+              <div>
+                <p class="section-kicker">NEXT SESSION</p>
+                <h2 id="todayTitle">Buổi học tiếp theo</h2>
+              </div>
+              <span class="time-pill">60 phút</span>
+            </div>
+
+            <div class="next-topic-row">
+              <div class="topic-icon" id="nextTopicIcon">BS</div>
+              <div>
+                <p class="next-label" id="nextReason">Đang tiếp nối nền tảng</p>
+                <h3 id="nextTopic">Binary search on answer</h3>
+              </div>
+            </div>
+
+            <div class="session-plan" id="sessionPlan">
+              <div><span>10'</span><p><strong>Ôn</strong><small>Đọc lại note &amp; template</small></p></div>
+              <div><span>40'</span><p><strong>Giải</strong><small>2 bài đúng chủ đề</small></p></div>
+              <div><span>10'</span><p><strong>Chốt</strong><small>Ghi lỗi và pattern</small></p></div>
+            </div>
+
+            <div class="next-actions">
+              <button class="primary-button" id="learnNextButton" type="button">
+                Học template ngay
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+              <button class="next-log-button" id="startSessionButton" type="button">Ghi buổi học</button>
+            </div>
+          </article>
+
+          <aside class="week-card glass">
+            <div class="card-heading compact">
+              <div>
+                <p class="section-kicker">THIS WEEK</p>
+                <h2>Nhịp học 7 ngày</h2>
+              </div>
+              <span class="streak" id="streakText">0 ngày</span>
+            </div>
+            <div class="week-strip" id="weekStrip" aria-label="Lịch học 7 ngày gần nhất"></div>
+            <div class="week-summary">
+              <div><span id="weekMinutes">0</span><small>phút</small></div>
+              <div><span id="weekProblems">0</span><small>bài</small></div>
+              <div><span id="mockDue">10</span><small>buổi tới mock</small></div>
+            </div>
+          </aside>
+        </section>
+
+        <!-- Radar Skill Matrix & CP Tools Arsenal -->
+        <section class="dashboard-analytics-row" aria-label="Phân tích kỹ năng OLP">
+          <article class="radar-card glass">
+            <div class="card-heading compact">
+              <div>
+                <p class="section-kicker">RADAR MATRIX · 6 TRỤC</p>
+                <h3>Năng lực Thuật toán OLP</h3>
+              </div>
+              <span class="time-pill" id="radarOverallLabel">Đang tính...</span>
+            </div>
+            <div class="radar-container">
+              <svg id="skillRadarChart" viewBox="0 0 340 320" class="skill-radar-svg"></svg>
+              <div class="radar-legend" id="radarLegend"></div>
+            </div>
+          </article>
+          <article class="cp-tools-card glass">
+            <div class="card-heading compact">
+              <div>
+                <p class="section-kicker">CP ARSENAL · V7</p>
+                <h3>Vũ khí Chiến thuật Thi đấu</h3>
+              </div>
+              <span class="live-pill">PRO</span>
+            </div>
+            <p class="cp-tools-desc">Công cụ hỗ trợ phân tích ràng buộc Big-O, sinh script Stress Test C++ và săn test phản ví dụ.</p>
+            <div class="cp-tools-grid">
+              <button class="cp-tool-btn" id="openBigOCalcBtn" type="button">
+                <span class="cp-tool-icon">⚡</span>
+                <div>
+                  <strong>Tra cứu Big-O từ Ràng buộc (N)</strong>
+                  <small>Nhập N, Time Limit → Tính ops &amp; thuật toán cho phép</small>
+                </div>
+                <span class="cp-tool-arrow">↗</span>
+              </button>
+              <button class="cp-tool-btn" id="openStressTestModalBtn" type="button">
+                <span class="cp-tool-icon">🛠️</span>
+                <div>
+                  <strong>Bộ sinh Stress Test C++</strong>
+                  <small>Tạo gen.cpp + brute.cpp + stress.bat tự tìm test sai</small>
+                </div>
+                <span class="cp-tool-arrow">↗</span>
+              </button>
+              <button class="cp-tool-btn" id="openFlashcardDeckBtn" type="button">
+                <span class="cp-tool-icon">🎴</span>
+                <div>
+                  <strong>Active Recall Flashcards (SM-2)</strong>
+                  <small>Luyện phản xạ Invariant &amp; Sổ tay lỗi 4 mức ngắt quãng</small>
+                </div>
+                <span class="cp-tool-arrow">↗</span>
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <!-- Quick Access Hub -->
+        <div class="dashboard-shortcuts">
+          <button class="shortcut-card glass" type="button" data-nav-target="roadmap">
+            <span class="shortcut-icon">🗺️</span>
+            <div class="shortcut-body">
+              <strong>Lộ trình &amp; Kho bài</strong>
+              <small>16 chủ đề OLP, mục tiêu &amp; bài tập MarisaOJ</small>
+            </div>
+            <span class="shortcut-arrow">→</span>
+          </button>
+          <button class="shortcut-card glass" type="button" data-nav-target="mock">
+            <span class="shortcut-icon">🏆</span>
+            <div class="shortcut-body">
+              <strong>Phòng thi đấu Virtual Mock</strong>
+              <small>Đề 3 bài chuẩn OLP, tính giờ &amp; AI Post-Mortem</small>
+            </div>
+            <span class="shortcut-arrow">→</span>
+          </button>
+          <button class="shortcut-card glass" type="button" data-nav-target="ai-coach">
+            <span class="shortcut-icon">🤖</span>
+            <div class="shortcut-body">
+              <strong>AI Coach &amp; Debugger</strong>
+              <small>Gợi ý từng tầng cho C++ &amp; phản biện hướng làm</small>
+            </div>
+            <span class="shortcut-arrow">→</span>
+          </button>
+          <button class="shortcut-card glass" type="button" data-nav-target="review">
+            <span class="shortcut-icon">🧠</span>
+            <div class="shortcut-body">
+              <strong>Sổ lỗi &amp; Ôn nhanh</strong>
+              <small>Lịch spaced repetition &amp; flashcards lật thẻ</small>
+            </div>
+            <span class="shortcut-arrow">→</span>
+          </button>
         </div>
 
-        <div class="readiness-card glass">
-          <div class="readiness-topline">
-            <span>Độ sẵn sàng OLP</span>
-            <strong id="readinessValue">0%</strong>
-          </div>
-          <div class="meter"><span id="readinessBar"></span></div>
-          <div class="readiness-grid">
-            <div><strong id="solvedTotal">0</strong><span>bài đã xong</span></div>
-            <div><strong id="studyHours">0h</strong><span>giờ tập trung</span></div>
-            <div><strong id="mockTotal">0</strong><span>mixed mock</span></div>
-          </div>
-        </div>
-      </section>
+        <section class="teacher-section hidden" id="teacherDashboard" aria-labelledby="teacherTitle">
+          <div class="section-header"><div><p class="section-kicker">V5 · CLASS MODE</p><h2 id="teacherTitle">Teacher dashboard</h2><p class="teacher-sub">Theo dõi nhóm học sinh ngay trên máy này; cấu trúc dữ liệu đã tách để có thể nối API/cloud sau.</p></div><button class="primary-button compact-button" id="addStudentButton" type="button">+ Thêm học sinh</button></div>
+          <div class="teacher-cloud-bar"><div><strong id="cloudClassStatus">Chưa nối lớp cloud</strong><small>Supabase Class Mode · học sinh tham gia bằng mã lớp.</small></div><div><button class="secondary-button" id="joinCloudClassButton" type="button">Tham gia lớp</button><button class="primary-button compact-button" id="createCloudClassButton" type="button">Tạo lớp cloud</button></div></div>
+          <div class="teacher-summary" id="teacherSummary"></div>
+          <div class="student-table-wrap"><table class="student-table"><thead><tr><th>Học sinh</th><th>Readiness</th><th>Topic yếu nhất</th><th>Buổi học</th><th>Mock gần nhất</th><th></th></tr></thead><tbody id="studentTableBody"></tbody></table></div>
+          <div class="cloud-students-card"><div class="card-heading compact"><div><p class="section-kicker">CLOUD CLASS</p><h3>Học sinh đã đồng bộ</h3></div></div><div id="cloudStudentList"><div class="cloud-student-empty">Đăng nhập Supabase và tạo lớp để xem dữ liệu đa thiết bị.</div></div></div>
+        </section>
+      </div>
 
-      <section class="dashboard" aria-labelledby="todayTitle">
-        <article class="next-card">
-          <div class="card-heading">
+      <!-- TAB 2: LỘ TRÌNH & BÀI TẬP -->
+      <div class="tab-pane" id="pane-roadmap" data-tab-pane="roadmap">
+        <section class="roadmap-section" aria-labelledby="roadmapTitle">
+          <div class="section-header">
             <div>
-              <p class="section-kicker">NEXT SESSION</p>
-              <h2 id="todayTitle">Buổi học tiếp theo</h2>
+              <p class="section-kicker">BALANCED ROADMAP</p>
+              <h2 id="roadmapTitle">Nền tảng → thi đấu</h2>
             </div>
-            <span class="time-pill">60 phút</span>
+            <div class="phase-tabs" id="phaseTabs" role="tablist" aria-label="Lọc theo chặng">
+              <button class="active" type="button" data-phase="all">Tất cả</button>
+              <button type="button" data-phase="1">01 Nền tảng</button>
+              <button type="button" data-phase="2">02 Cốt lõi</button>
+              <button type="button" data-phase="3">03 Thi đấu</button>
+            </div>
           </div>
 
-          <div class="next-topic-row">
-            <div class="topic-icon" id="nextTopicIcon">BS</div>
+          <div class="phase-progress" id="phaseProgress"></div>
+          <div class="topics-grid" id="topicsGrid"></div>
+
+          <div class="exercise-bank" aria-labelledby="exerciseTitle">
+            <div class="exercise-bank-head">
+              <div>
+                <p class="section-kicker">MARISAOJ PRACTICE</p>
+                <h3 id="exerciseTitle">Kho bài tập</h3>
+                <p>Chỉ tên đề, độ khó và điểm — không gợi ý cách giải.</p>
+              </div>
+              <div class="exercise-score"><strong id="exerciseScore">0</strong><span>điểm đã kiếm</span></div>
+            </div>
+
+            <div class="exercise-toolbar">
+              <div class="exercise-search-box">
+                <span class="search-icon">🔍</span>
+                <input id="exerciseSearchInput" type="text" placeholder="Tìm tên bài, số #ID hoặc chủ đề..." aria-label="Tìm kiếm bài tập" autocomplete="off" />
+                <button id="clearExerciseSearchBtn" class="clear-search-btn hidden" type="button" aria-label="Xóa tìm kiếm">×</button>
+              </div>
+              <div class="exercise-filters" id="exerciseFilters" aria-label="Lọc bài theo độ khó">
+                <button class="active" type="button" data-exercise-filter="all">Tất cả</button>
+                <button type="button" data-exercise-filter="easy">Dễ · 50</button>
+                <button type="button" data-exercise-filter="medium">Vừa · 100</button>
+                <button type="button" data-exercise-filter="hard">Khó · 180</button>
+                <button type="button" data-exercise-filter="extreme">Rất khó · 300</button>
+              </div>
+              <div class="platform-filters" id="platformFilters" aria-label="Lọc theo nền tảng">
+                <button class="active" type="button" data-platform-filter="all">Tất cả sàn</button>
+                <button type="button" data-platform-filter="marisa">MarisaOJ</button>
+                <button type="button" data-platform-filter="vnoj">VNOJ</button>
+                <button type="button" data-platform-filter="cses">CSES</button>
+                <button type="button" data-platform-filter="codeforces">Codeforces</button>
+              </div>
+            </div>
+            <div class="exercise-grid" id="exerciseGrid"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB 3: THI THỬ MOCK -->
+      <div class="tab-pane" id="pane-mock" data-tab-pane="mock">
+        <section class="review-section" aria-labelledby="reviewTitle">
+          <div class="section-header">
             <div>
-              <p class="next-label" id="nextReason">Đang tiếp nối nền tảng</p>
-              <h3 id="nextTopic">Binary search on answer</h3>
+              <p class="section-kicker">CHECKPOINTS &amp; ARENA</p>
+              <h2 id="reviewTitle">Thi thử &amp; Mixed Mock</h2>
+            </div>
+            <div class="mock-header-actions">
+              <button class="primary-button compact-button" id="startVirtualMockButton" type="button">🏆 Bắt đầu Virtual Mock (Thi thử)</button>
+              <button class="secondary-button compact-button" id="logMockButton" type="button">+ Ghi thủ công</button>
             </div>
           </div>
 
-          <div class="session-plan" id="sessionPlan">
-            <div><span>10'</span><p><strong>Ôn</strong><small>Đọc lại note &amp; template</small></p></div>
-            <div><span>40'</span><p><strong>Giải</strong><small>2 bài đúng chủ đề</small></p></div>
-            <div><span>10'</span><p><strong>Chốt</strong><small>Ghi lỗi và pattern</small></p></div>
-          </div>
+          <div class="review-grid">
+            <article class="mock-card glass">
+              <div class="mock-status" id="mockStatusBadge">MOCK #1</div>
+              <h3 id="mockHeadline">Mở sau 10 buổi học</h3>
+              <p id="mockDescription">Cứ mỗi 10 buổi, làm một đề 60 phút gồm 3 chủ đề đã học để kiểm tra khả năng chuyển bài.</p>
+              <div class="mock-progress"><span id="mockProgressBar"></span></div>
+              <div class="mock-foot"><span id="mockProgressText">0 / 10 buổi</span><span>Mục tiêu: ≥ 60 điểm</span></div>
+            </article>
 
-          <div class="next-actions">
-            <button class="primary-button" id="learnNextButton" type="button">
-              Học template ngay
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
-            </button>
-            <button class="next-log-button" id="startSessionButton" type="button">Ghi buổi học</button>
+            <article class="history-card">
+              <div class="history-head">
+                <h3>Hoạt động gần đây</h3>
+                <button class="text-button" id="clearHistoryButton" type="button">Xóa nhật ký</button>
+              </div>
+              <div id="historyList" class="history-list"></div>
+            </article>
           </div>
-        </article>
+        </section>
+      </div>
 
-        <aside class="week-card glass">
-          <div class="card-heading compact">
+      <!-- TAB 4: AI COACH & DEBUG -->
+      <div class="tab-pane" id="pane-ai-coach" data-tab-pane="ai-coach">
+        <section class="code-review-section" id="codeReviewSection" aria-labelledby="codeReviewTitle">
+          <div class="section-header code-review-head">
             <div>
-              <p class="section-kicker">THIS WEEK</p>
-              <h2>Nhịp học 7 ngày</h2>
+              <p class="section-kicker">V6.1 · AI CODE REVIEW</p>
+              <h2 id="codeReviewTitle">Debug bằng gợi ý, không làm hộ</h2>
+              <p>Dán đề, code C++ và verdict. AI Coach sẽ ưu tiên invariant, edge case và complexity; mỗi lần chỉ mở thêm một tầng hint.</p>
             </div>
-            <span class="streak" id="streakText">0 ngày</span>
+            <div class="code-review-badges"><span class="time-pill">Socratic</span><span class="time-pill">JWT protected</span></div>
           </div>
-          <div class="week-strip" id="weekStrip" aria-label="Lịch học 7 ngày gần nhất"></div>
-          <div class="week-summary">
-            <div><span id="weekMinutes">0</span><small>phút</small></div>
-            <div><span id="weekProblems">0</span><small>bài</small></div>
-            <div><span id="mockDue">10</span><small>buổi tới mock</small></div>
+          <div class="code-review-grid">
+            <form class="code-review-form glass" id="codeReviewForm">
+              <div class="form-row">
+                <label>Chủ đề<select id="codeReviewTopic"></select></label>
+                <label>Verdict<select id="codeReviewVerdict"><option value="WA">WA · Wrong Answer</option><option value="TLE">TLE · Time Limit</option><option value="RE">RE · Runtime Error</option><option value="MLE">MLE · Memory Limit</option><option value="UNSURE">Chưa biết / cần review</option></select></label>
+              </div>
+              <div class="quick-import-bar">
+                <button class="text-button quick-import-btn" id="openProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
+                <button class="text-button bookmarklet-hint-btn" id="openBookmarkletBtn" type="button">📌 Bookmarklet 1-chạm</button>
+              </div>
+              <label>Tóm tắt đề / constraints<textarea id="codeReviewProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần...&#10;Có thể dán statement rút gọn và constraints quan trọng."></textarea></label>
+              <label>Code C++<textarea id="codeReviewCode" class="code-input" rows="18" maxlength="24000" spellcheck="false" placeholder="#include &lt;bits/stdc++.h&gt;&#10;using namespace std;&#10;..."></textarea></label>
+              <label>Điều bạn đang nghi ngờ / test đã fail<textarea id="codeReviewNote" rows="3" maxlength="1200" placeholder="Ví dụ: sample đúng nhưng hidden test WA; nghi lỗi biên khi có duplicate..."></textarea></label>
+              <div class="code-review-actions">
+                <button class="primary-button" id="startCodeReviewButton" type="submit">✦ Phân tích &amp; lấy Hint 1</button>
+                <button class="secondary-button" id="clearCodeReviewButton" type="button">Làm mới</button>
+              </div>
+              <small class="privacy-note">Code được gửi qua Supabase Edge Function đến AI provider đã cấu hình. API key không nằm trong trình duyệt.</small>
+            </form>
+            <article class="code-review-output" aria-live="polite">
+              <div class="code-review-output-head"><div><p class="section-kicker">COACH RESPONSE</p><h3 id="codeReviewResultTitle">Chưa có review</h3></div><span id="codeReviewStatus" class="ai-status">Đăng nhập Supabase để bắt đầu</span></div>
+              <div id="codeReviewEmpty" class="code-review-empty"><strong>AI không phải online judge.</strong><p>Coach sẽ nêu giả thuyết, test biên nên thử và hướng sửa tư duy. Verdict thật vẫn dựa trên judge/test của bạn.</p></div>
+              <div id="codeReviewResult" class="hidden"></div>
+              <div id="hintLadder" class="hint-ladder hidden"></div>
+              <div class="hint-actions hidden" id="hintActions">
+                <button class="secondary-button" id="nextHintButton" type="button">Mở Hint 2 →</button>
+                <button class="text-button" id="saveReviewMistakeButton" type="button">+ Lưu kết luận vào Error Notebook</button>
+              </div>
+            </article>
           </div>
-        </aside>
-      </section>
-
-      <section class="intelligence-section" id="studentIntelligence" aria-labelledby="coachTitle">
-        <div class="section-header">
-          <div><p class="section-kicker">V6 · TRAINING INTELLIGENCE</p><h2 id="coachTitle">Smart Coach &amp; vòng lặp cải thiện</h2></div>
-          <button class="primary-button compact-button" id="generatePlanButton" type="button">Tạo buổi luyện hôm nay</button>
-        </div>
-        <div class="intelligence-grid">
-          <article class="coach-card glass">
-            <div class="coach-head"><div><span class="coach-label">MASTERY</span><strong id="coachMastery">0%</strong></div><span id="coachRisk">Đang phân tích</span></div>
-            <h3 id="coachFocus">Chưa đủ dữ liệu</h3>
-            <p id="coachExplanation">Ghi vài buổi học để Smart Coach phát hiện topic yếu, topic sắp quên và lỗi lặp lại.</p>
-            <div class="ai-coach-actions"><button class="secondary-button compact-button" id="aiCoachButton" type="button">✦ AI phân tích tuần</button><span id="aiCoachStatus" class="ai-status">Cần đăng nhập Supabase</span></div>
-            <div id="aiCoachResult" class="ai-coach-result hidden" aria-live="polite"></div>
-            <div id="masteryBars" class="mastery-bars"></div>
-          </article>
-          <article class="daily-plan-card">
-            <div class="card-heading compact"><div><p class="section-kicker">DAILY TRAINING</p><h3>Buổi luyện được cá nhân hóa</h3></div><span class="time-pill" id="dailyPlanDuration">60 phút</span></div>
-            <div id="dailyPlan" class="daily-plan"></div>
-          </article>
-          <article class="weakness-card">
-            <div class="card-heading compact"><div><p class="section-kicker">ERROR NOTEBOOK</p><h3>Lỗi cần sửa</h3></div><button class="text-button" id="logErrorButton" type="button">+ Ghi lỗi</button></div>
-            <div id="errorInsights" class="error-insights"></div>
-          </article>
-          <article class="review-due-card glass">
-            <div class="card-heading compact"><div><p class="section-kicker">SPACED REVIEW</p><h3>Ôn đúng lúc</h3></div><span class="streak" id="reviewDueCount">0 đến hạn</span></div>
-            <div id="reviewDueList" class="review-due-list"></div>
-          </article>
-        </div>
-      </section>
-
-
-      <section class="code-review-section" id="codeReviewSection" aria-labelledby="codeReviewTitle">
-        <div class="section-header code-review-head">
-          <div>
-            <p class="section-kicker">V6.1 · AI CODE REVIEW</p>
-            <h2 id="codeReviewTitle">Debug bằng gợi ý, không làm hộ</h2>
-            <p>Dán đề, code C++ và verdict. AI Coach sẽ ưu tiên invariant, edge case và complexity; mỗi lần chỉ mở thêm một tầng hint.</p>
+          <div class="code-review-history-wrap">
+            <div class="card-heading compact"><div><p class="section-kicker">RECENT REVIEWS</p><h3>Lần debug gần đây</h3></div><button class="text-button" id="clearCodeReviewHistoryButton" type="button">Xóa lịch sử review</button></div>
+            <div id="codeReviewHistory" class="code-review-history"></div>
           </div>
-          <div class="code-review-badges"><span class="time-pill">Socratic</span><span class="time-pill">JWT protected</span></div>
-        </div>
-        <div class="code-review-grid">
-          <form class="code-review-form glass" id="codeReviewForm">
-            <div class="form-row">
-              <label>Chủ đề<select id="codeReviewTopic"></select></label>
-              <label>Verdict<select id="codeReviewVerdict"><option value="WA">WA · Wrong Answer</option><option value="TLE">TLE · Time Limit</option><option value="RE">RE · Runtime Error</option><option value="MLE">MLE · Memory Limit</option><option value="UNSURE">Chưa biết / cần review</option></select></label>
-            </div>
-            <div class="quick-import-bar">
-              <button class="text-button quick-import-btn" id="openProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
-              <button class="text-button bookmarklet-hint-btn" id="openBookmarkletBtn" type="button">📌 Bookmarklet 1-chạm</button>
-            </div>
-            <label>Tóm tắt đề / constraints<textarea id="codeReviewProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần...
-Có thể dán statement rút gọn và constraints quan trọng."></textarea></label>
-            <label>Code C++<textarea id="codeReviewCode" class="code-input" rows="18" maxlength="24000" spellcheck="false" placeholder="#include <bits/stdc++.h>
-using namespace std;
-..."></textarea></label>
-            <label>Điều bạn đang nghi ngờ / test đã fail<textarea id="codeReviewNote" rows="3" maxlength="1200" placeholder="Ví dụ: sample đúng nhưng hidden test WA; nghi lỗi biên khi có duplicate..."></textarea></label>
-            <div class="code-review-actions">
-              <button class="primary-button" id="startCodeReviewButton" type="submit">✦ Phân tích &amp; lấy Hint 1</button>
-              <button class="secondary-button" id="clearCodeReviewButton" type="button">Làm mới</button>
-            </div>
-            <small class="privacy-note">Code được gửi qua Supabase Edge Function đến AI provider đã cấu hình. API key không nằm trong trình duyệt.</small>
-          </form>
-          <article class="code-review-output" aria-live="polite">
-            <div class="code-review-output-head"><div><p class="section-kicker">COACH RESPONSE</p><h3 id="codeReviewResultTitle">Chưa có review</h3></div><span id="codeReviewStatus" class="ai-status">Đăng nhập Supabase để bắt đầu</span></div>
-            <div id="codeReviewEmpty" class="code-review-empty"><strong>AI không phải online judge.</strong><p>Coach sẽ nêu giả thuyết, test biên nên thử và hướng sửa tư duy. Verdict thật vẫn dựa trên judge/test của bạn.</p></div>
-            <div id="codeReviewResult" class="hidden"></div>
-            <div id="hintLadder" class="hint-ladder hidden"></div>
-            <div class="hint-actions hidden" id="hintActions">
-              <button class="secondary-button" id="nextHintButton" type="button">Mở Hint 2 →</button>
-              <button class="text-button" id="saveReviewMistakeButton" type="button">+ Lưu kết luận vào Error Notebook</button>
-            </div>
-          </article>
-        </div>
-        <div class="code-review-history-wrap">
-          <div class="card-heading compact"><div><p class="section-kicker">RECENT REVIEWS</p><h3>Lần debug gần đây</h3></div><button class="text-button" id="clearCodeReviewHistoryButton" type="button">Xóa lịch sử review</button></div>
-          <div id="codeReviewHistory" class="code-review-history"></div>
-        </div>
-      </section>
+        </section>
 
-      <section class="reasoning-section" id="reasoningSection" aria-labelledby="reasoningTitle">
-        <div class="section-header reasoning-head">
-          <div><p class="section-kicker">V6.2 · MOBILE REASONING</p><h2 id="reasoningTitle">Không tiện code? Nói hướng làm.</h2><p>Mô tả thuật toán bằng lời hoặc dùng nhập giọng nói. AI Coach sẽ kiểm tra tính đúng, complexity, các nhánh/case còn thiếu và cho một dry run để bạn tự mô phỏng.</p></div>
-          <div class="code-review-badges"><span class="time-pill">Idea → Cases → Dry run</span><span class="time-pill">Socratic</span></div>
-        </div>
-        <div class="reasoning-grid">
-          <form class="reasoning-form glass" id="reasoningForm">
-            <div class="form-row"><label>Chủ đề<select id="reasoningTopic"></select></label><label>Mức đánh giá<select id="reasoningMode"><option value="idea">Idea only</option><option value="detailed" selected>Detailed reasoning</option><option value="dry_run">Dry run focused</option></select></label></div>
-            <div class="quick-import-bar">
-              <button class="text-button quick-import-btn" id="openReasoningProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
-            </div>
-            <label>Tóm tắt đề / constraints<textarea id="reasoningProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần tìm..."></textarea></label>
-            <label>Hướng làm của bạn<textarea id="reasoningIdea" rows="10" maxlength="7000" placeholder="Ví dụ: Em binary search trên đáp án. Với mỗi mid, check bằng greedy..."></textarea></label>
-            <div class="voice-row"><button class="secondary-button" id="reasoningVoiceButton" type="button">🎙 Nói hướng làm</button><span id="reasoningVoiceStatus">Nếu trình duyệt hỗ trợ speech-to-text.</span></div>
-            <label>Complexity bạn dự đoán<input id="reasoningComplexity" maxlength="100" placeholder="O(N log N), O(N) memory..."></label>
-            <div class="reasoning-actions"><button class="primary-button" type="submit" id="startReasoningButton">✦ Đánh giá hướng làm</button><button class="secondary-button" type="button" id="clearReasoningButton">Làm mới</button></div>
-            <small class="privacy-note">AI không chấm theo độ giống editorial. Mục tiêu là kiểm tra lập luận của chính bạn và tìm case có thể phá hướng làm.</small>
-          </form>
-          <article class="reasoning-output" aria-live="polite">
-            <div class="code-review-output-head"><div><p class="section-kicker">REASONING COACH</p><h3 id="reasoningResultTitle">Chưa có đánh giá</h3></div><span id="reasoningStatus" class="ai-status">Đăng nhập Supabase để bắt đầu</span></div>
-            <div id="reasoningEmpty" class="code-review-empty"><strong>Code không bắt buộc.</strong><p>Hãy nói rõ state/invariant, cách xử lý từng trường hợp và complexity. Coach sẽ hỏi ngược nếu lập luận còn hổng.</p></div>
-            <div id="reasoningResult" class="hidden"></div>
-            <div id="reasoningDryRun" class="dry-run-card hidden"></div>
-            <div id="reasoningActions" class="reasoning-result-actions hidden"><button class="secondary-button" id="newDryRunButton" type="button">↻ Tạo dry run khác</button><button class="text-button" id="saveReasoningMistakeButton" type="button">+ Lưu điểm hổng vào Error Notebook</button></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="quick-review-section" id="quickReviewSection" aria-labelledby="quickReviewTitle">
-        <div class="section-header quick-review-head"><div><p class="section-kicker">MOBILE · QUICK REVIEW</p><h2 id="quickReviewTitle">Ôn nhanh khi đang di chuyển</h2><p>Chạm thẻ để lật. Không cần code — chỉ recall pattern, invariant và lỗi cũ.</p></div><div class="quick-actions"><span id="quickReviewCount" class="time-pill">1/1</span><button class="secondary-button" id="calendarExportButton" type="button">Xuất lịch ôn .ics</button></div></div>
-        <div class="flashcard-wrap">
-          <article class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Flashcard ôn nhanh">
-            <div class="flash-face flash-front"><span id="flashcardCode" class="flash-code">BS</span><h3 id="flashcardTitle">Binary Search</h3><p id="flashcardPrompt">Khi nào dùng?</p><small>Chạm để xem đáp án</small></div>
-            <div class="flash-face flash-back"><span class="flash-code">RECALL</span><h3>Điểm phải nhớ</h3><p id="flashcardAnswer">Invariant / lỗi thường gặp</p><small>Đánh giá mức nhớ để lên lịch ôn tiếp theo.</small></div>
-          </article>
-          <div class="flash-controls"><button id="flashAgainButton" class="secondary-button" type="button">Chưa nhớ · ôn sớm</button><button id="flashRevealButton" class="secondary-button" type="button">Lật thẻ</button><button id="flashGoodButton" class="primary-button" type="button">Nhớ tốt →</button></div>
-        </div>
-      </section>
-
-      <section class="teacher-section hidden" id="teacherDashboard" aria-labelledby="teacherTitle">
-        <div class="section-header"><div><p class="section-kicker">V5 · CLASS MODE</p><h2 id="teacherTitle">Teacher dashboard</h2><p class="teacher-sub">Theo dõi nhóm học sinh ngay trên máy này; cấu trúc dữ liệu đã tách để có thể nối API/cloud sau.</p></div><button class="primary-button compact-button" id="addStudentButton" type="button">+ Thêm học sinh</button></div>
-        <div class="teacher-cloud-bar"><div><strong id="cloudClassStatus">Chưa nối lớp cloud</strong><small>Supabase Class Mode · học sinh tham gia bằng mã lớp.</small></div><div><button class="secondary-button" id="joinCloudClassButton" type="button">Tham gia lớp</button><button class="primary-button compact-button" id="createCloudClassButton" type="button">Tạo lớp cloud</button></div></div>
-        <div class="teacher-summary" id="teacherSummary"></div>
-        <div class="student-table-wrap"><table class="student-table"><thead><tr><th>Học sinh</th><th>Readiness</th><th>Topic yếu nhất</th><th>Buổi học</th><th>Mock gần nhất</th><th></th></tr></thead><tbody id="studentTableBody"></tbody></table></div>
-        <div class="cloud-students-card"><div class="card-heading compact"><div><p class="section-kicker">CLOUD CLASS</p><h3>Học sinh đã đồng bộ</h3></div></div><div id="cloudStudentList"><div class="cloud-student-empty">Đăng nhập Supabase và tạo lớp để xem dữ liệu đa thiết bị.</div></div></div>
-      </section>
-
-      <section class="roadmap-section" aria-labelledby="roadmapTitle">
-        <div class="section-header">
-          <div>
-            <p class="section-kicker">BALANCED ROADMAP</p>
-            <h2 id="roadmapTitle">Nền tảng → thi đấu</h2>
+        <section class="reasoning-section" id="reasoningSection" aria-labelledby="reasoningTitle">
+          <div class="section-header reasoning-head">
+            <div><p class="section-kicker">V6.2 · MOBILE REASONING</p><h2 id="reasoningTitle">Không tiện code? Nói hướng làm.</h2><p>Mô tả thuật toán bằng lời hoặc dùng nhập giọng nói. AI Coach sẽ kiểm tra tính đúng, complexity, các nhánh/case còn thiếu và cho một dry run để bạn tự mô phỏng.</p></div>
+            <div class="code-review-badges"><span class="time-pill">Idea → Cases → Dry run</span><span class="time-pill">Socratic</span></div>
           </div>
-          <div class="phase-tabs" id="phaseTabs" role="tablist" aria-label="Lọc theo chặng">
-            <button class="active" type="button" data-phase="all">Tất cả</button>
-            <button type="button" data-phase="1">01 Nền tảng</button>
-            <button type="button" data-phase="2">02 Cốt lõi</button>
-            <button type="button" data-phase="3">03 Thi đấu</button>
-          </div>
-        </div>
+          <div class="reasoning-grid">
+            <form class="reasoning-form glass" id="reasoningForm">
+              <div class="form-row"><label>Chủ đề<select id="reasoningTopic"></select></label><label>Mức đánh giá<select id="reasoningMode"><option value="idea">Idea only</option><option value="detailed" selected>Detailed reasoning</option><option value="dry_run">Dry run focused</option></select></label></div>
+              <div class="quick-import-bar">
+                <button class="text-button quick-import-btn" id="openReasoningProblemParserBtn" type="button">⚡ Bóc tách đề từ MarisaOJ / Dán nhanh</button>
+              </div>
+              <label>Tóm tắt đề / constraints<textarea id="reasoningProblem" rows="5" maxlength="5000" placeholder="N ≤ 2e5, cần tìm..."></textarea></label>
+              <label>Hướng làm của bạn<textarea id="reasoningIdea" rows="10" maxlength="7000" placeholder="Ví dụ: Em binary search trên đáp án. Với mỗi mid, check bằng greedy..."></textarea></label>
+              <div class="voice-row"><button class="secondary-button" id="reasoningVoiceButton" type="button">🎙 Nói hướng làm</button><span id="reasoningVoiceStatus">Nếu trình duyệt hỗ trợ speech-to-text.</span></div>
+              <label>Complexity bạn dự đoán<input id="reasoningComplexity" maxlength="100" placeholder="O(N log N), O(N) memory..."></label>
+              <div class="reasoning-actions"><button class="primary-button" type="submit" id="startReasoningButton">✦ Đánh giá hướng làm</button><button class="secondary-button" type="button" id="clearReasoningButton">Làm mới</button></div>
+              <small class="privacy-note">AI không chấm theo độ giống editorial. Mục tiêu là kiểm tra lập luận của chính bạn và tìm case có thể phá hướng làm.</small>
+            </form>
+            <article class="reasoning-output" aria-live="polite">
+              <div class="code-review-output-head"><div><p class="section-kicker">REASONING COACH</p><h3 id="reasoningResultTitle">Chưa có đánh giá</h3></div><span id="reasoningStatus" class="ai-status">Đăng nhập Supabase để bắt đầu</span></div>
+              <div id="reasoningEmpty" class="code-review-empty"><strong>Code không bắt buộc.</strong><p>Hãy nói rõ state/invariant, cách xử lý từng trường hợp và complexity. Coach sẽ hỏi ngược nếu lập luận còn hổng.</p></div>
+              <div id="reasoningResult" class="hidden"></div>
+              <div id="reasoningDryRun" class="dry-run-card hidden"></div>
+              <div id="reasoningActions" class="reasoning-result-actions hidden"><button class="secondary-button" id="newDryRunButton" type="button">↻ Tạo dry run khác</button><button class="text-button" id="saveReasoningMistakeButton" type="button">+ Lưu điểm hổng vào Error Notebook</button></div>
+            </article>
+        </section>
 
-        <div class="phase-progress" id="phaseProgress"></div>
-        <div class="topics-grid" id="topicsGrid"></div>
-
-        <div class="exercise-bank" aria-labelledby="exerciseTitle">
-          <div class="exercise-bank-head">
+        <section class="counter-test-section" id="counterTestSection" aria-labelledby="counterTestTitle">
+          <div class="section-header counter-test-head">
             <div>
-              <p class="section-kicker">MARISAOJ PRACTICE</p>
-              <h3 id="exerciseTitle">Kho bài tập</h3>
-              <p>Chỉ tên đề, độ khó và điểm — không gợi ý cách giải.</p>
+              <p class="section-kicker">V7 · CORNER CASE HUNTER</p>
+              <h2 id="counterTestTitle">Săn test phản ví dụ &amp; Corner Cases</h2>
+              <p>Dán tóm tắt đề và hướng làm / code bị WA. AI Coach sẽ sinh 2–3 test case biên nhỏ nhất (N=1, số âm, disconnected graph, duplicate values, overflow) làm thuật toán thất bại.</p>
             </div>
-            <div class="exercise-score"><strong id="exerciseScore">0</strong><span>điểm đã kiếm</span></div>
-          </div>
-          <div class="exercise-filters" id="exerciseFilters" aria-label="Lọc bài theo độ khó">
-            <button class="active" type="button" data-exercise-filter="all">Tất cả</button>
-            <button type="button" data-exercise-filter="easy">Dễ · 50</button>
-            <button type="button" data-exercise-filter="medium">Vừa · 100</button>
-            <button type="button" data-exercise-filter="hard">Khó · 180</button>
-            <button type="button" data-exercise-filter="extreme">Rất khó · 300</button>
-          </div>
-          <div class="exercise-grid" id="exerciseGrid"></div>
-        </div>
-      </section>
-
-      <section class="review-section" aria-labelledby="reviewTitle">
-        <div class="section-header">
-          <div>
-            <p class="section-kicker">CHECKPOINTS</p>
-            <h2 id="reviewTitle">Nhật ký &amp; mixed mock</h2>
-          </div>
-          <div class="mock-header-actions">
-            <button class="primary-button compact-button" id="startVirtualMockButton" type="button">🏆 Bắt đầu Virtual Mock (Thi thử)</button>
-            <button class="secondary-button compact-button" id="logMockButton" type="button">+ Ghi thủ công</button>
-          </div>
-        </div>
-
-        <div class="review-grid">
-          <article class="mock-card glass">
-            <div class="mock-status" id="mockStatusBadge">MOCK #1</div>
-            <h3 id="mockHeadline">Mở sau 10 buổi học</h3>
-            <p id="mockDescription">Cứ mỗi 10 buổi, làm một đề 60 phút gồm 3 chủ đề đã học để kiểm tra khả năng chuyển bài.</p>
-            <div class="mock-progress"><span id="mockProgressBar"></span></div>
-            <div class="mock-foot"><span id="mockProgressText">0 / 10 buổi</span><span>Mục tiêu: ≥ 60 điểm</span></div>
-          </article>
-
-          <article class="history-card">
-            <div class="history-head">
-              <h3>Hoạt động gần đây</h3>
-              <button class="text-button" id="clearHistoryButton" type="button">Xóa nhật ký</button>
+            <div class="code-review-badges">
+              <button class="secondary-button compact-button" id="triggerStressModalFromAI" type="button">🛠️ Sinh bộ Stress Test C++</button>
             </div>
-            <div id="historyList" class="history-list"></div>
-          </article>
-        </div>
-      </section>
+          </div>
+          <div class="code-review-grid">
+            <form class="code-review-form glass" id="counterTestForm">
+              <div class="form-row">
+                <label>Chủ đề<select id="counterTestTopic"></select></label>
+                <label>Loại bẫy nghi ngờ
+                  <select id="counterTestSuspect">
+                    <option value="corner_cases" selected>Biên kích thước (N=1, rỗng, min/max)</option>
+                    <option value="overflow">Tràn số (int vs long long / modulo)</option>
+                    <option value="graph_degeneracy">Đồ thị suy biến (chu trình, không liên thông, cây đường thẳng)</option>
+                    <option value="duplicates">Dữ liệu đặc biệt (trùng lặp, toàn số âm, hằng số)</option>
+                    <option value="tle_killer">Test làm suy biến độ phức tạp (Anti-hash, Anti-quicksort)</option>
+                  </select>
+                </label>
+              </div>
+              <label>Tóm tắt đề &amp; Constraints<textarea id="counterTestProblem" rows="4" maxlength="5000" placeholder="N ≤ 2e5, ai ≤ 1e9... Tóm tắt yêu cầu và giới hạn"></textarea></label>
+              <label>Code hoặc Hướng giải thuật của bạn<textarea id="counterTestCode" class="code-input" rows="12" maxlength="20000" placeholder="Dán code C++ hoặc mô tả logic giải thuật đang bị WA..."></textarea></label>
+              <div class="code-review-actions">
+                <button class="primary-button" id="startCounterTestBtn" type="submit">🎯 Săn 3 test phản ví dụ</button>
+                <button class="secondary-button" id="clearCounterTestBtn" type="button">Làm mới</button>
+              </div>
+            </form>
+            <article class="code-review-output" aria-live="polite">
+              <div class="code-review-output-head">
+                <div><p class="section-kicker">HUNTER RESPONSE</p><h3 id="counterTestResultTitle">Chưa có kết quả</h3></div>
+                <span id="counterTestStatus" class="ai-status">Sẵn sàng</span>
+              </div>
+              <div id="counterTestEmpty" class="code-review-empty">
+                <strong>Vũ khí bí mật khắc chế WA ẩn.</strong>
+                <p>AI sẽ phân tích các điểm giả định ngầm trong code và dựng input nhỏ nhất vi phạm giả định đó.</p>
+              </div>
+              <div id="counterTestResult" class="hidden"></div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- TAB 5: ÔN TẬP & SỔ LỖI -->
+      <div class="tab-pane" id="pane-review" data-tab-pane="review">
+        <section class="intelligence-section" id="studentIntelligence" aria-labelledby="coachTitle">
+          <div class="section-header">
+            <div><p class="section-kicker">V6 · TRAINING INTELLIGENCE</p><h2 id="coachTitle">Smart Coach &amp; vòng lặp cải thiện</h2></div>
+            <button class="primary-button compact-button" id="generatePlanButton" type="button">Tạo buổi luyện hôm nay</button>
+          </div>
+          <div class="intelligence-grid">
+            <article class="coach-card glass">
+              <div class="coach-head"><div><span class="coach-label">MASTERY</span><strong id="coachMastery">0%</strong></div><span id="coachRisk">Đang phân tích</span></div>
+              <h3 id="coachFocus">Chưa đủ dữ liệu</h3>
+              <p id="coachExplanation">Ghi vài buổi học để Smart Coach phát hiện topic yếu, topic sắp quên và lỗi lặp lại.</p>
+              <div class="ai-coach-actions"><button class="secondary-button compact-button" id="aiCoachButton" type="button">✦ AI phân tích tuần</button><span id="aiCoachStatus" class="ai-status">Cần đăng nhập Supabase</span></div>
+              <div id="aiCoachResult" class="ai-coach-result hidden" aria-live="polite"></div>
+              <div id="masteryBars" class="mastery-bars"></div>
+            </article>
+            <article class="daily-plan-card">
+              <div class="card-heading compact"><div><p class="section-kicker">DAILY TRAINING</p><h3>Buổi luyện được cá nhân hóa</h3></div><span class="time-pill" id="dailyPlanDuration">60 phút</span></div>
+              <div id="dailyPlan" class="daily-plan"></div>
+            </article>
+            <article class="weakness-card">
+              <div class="card-heading compact"><div><p class="section-kicker">ERROR NOTEBOOK</p><h3>Lỗi cần sửa</h3></div><button class="text-button" id="logErrorButton" type="button">+ Ghi lỗi</button></div>
+              <div id="errorInsights" class="error-insights"></div>
+            </article>
+            <article class="review-due-card glass">
+              <div class="card-heading compact"><div><p class="section-kicker">SPACED REVIEW</p><h3>Ôn đúng lúc</h3></div><span class="streak" id="reviewDueCount">0 đến hạn</span></div>
+              <div id="reviewDueList" class="review-due-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="quick-review-section" id="quickReviewSection" aria-labelledby="quickReviewTitle">
+          <div class="section-header quick-review-head">
+            <div>
+              <p class="section-kicker">ACTIVE RECALL · SRS V7</p>
+              <h2 id="quickReviewTitle">Luyện Phản Xạ Invariant &amp; Sổ Lỗi</h2>
+              <p>Chạm thẻ để lật. Không nhìn code — chỉ recall Invariant, Complexity, hoặc bài học từ lỗi cũ theo thuật toán ngắt quãng SM-2.</p>
+            </div>
+            <div class="quick-actions">
+              <span id="quickReviewDeckType" class="time-pill">Đề xuất</span>
+              <span id="quickReviewCount" class="time-pill">1/1</span>
+              <button class="secondary-button" id="calendarExportButton" type="button">Xuất lịch .ics</button>
+            </div>
+          </div>
+          <div class="flashcard-wrap">
+            <article class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Flashcard ôn nhanh">
+              <div class="flash-face flash-front">
+                <span id="flashcardCode" class="flash-code">BS</span>
+                <h3 id="flashcardTitle">Binary Search</h3>
+                <p id="flashcardPrompt">Khi nào dùng &amp; Invariant là gì?</p>
+                <small>Chạm thẻ hoặc bấm nút "Lật thẻ" để xem đáp án</small>
+              </div>
+              <div class="flash-face flash-back">
+                <span class="flash-code">INVARIANT &amp; TRAP</span>
+                <h3 id="flashcardAnswerTitle">Điểm cốt lõi</h3>
+                <p id="flashcardAnswer">Invariant / lỗi thường gặp</p>
+                <small>Chọn mức độ nhớ bên dưới để hệ thống xếp lịch ôn:</small>
+              </div>
+            </article>
+            <div class="sm2-controls" id="sm2Controls">
+              <button id="sm2AgainBtn" class="sm2-btn again" type="button">
+                <span>🔴 Quên</span>
+                <small>Ôn sau 1 ngày</small>
+              </button>
+              <button id="sm2HardBtn" class="sm2-btn hard" type="button">
+                <span>🟠 Khó</span>
+                <small>Ôn sau 3 ngày</small>
+              </button>
+              <button id="sm2GoodBtn" class="sm2-btn good" type="button">
+                <span>🟢 Tốt</span>
+                <small>Ôn sau 7 ngày</small>
+              </button>
+              <button id="sm2EasyBtn" class="sm2-btn easy" type="button">
+                <span>🟣 Rất dễ</span>
+                <small>Ôn sau 14 ngày</small>
+              </button>
+            </div>
+            <div class="flash-flip-bar" style="margin-top: 10px; display: flex; justify-content: center;">
+              <button id="flashRevealButton" class="secondary-button compact-button" type="button">🔄 Lật thẻ xem đáp án</button>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
 
     <footer class="shell">
@@ -328,7 +560,9 @@ using namespace std;
         </label>
         <div class="form-row">
           <label>Số phút<input id="sessionMinutes" type="number" min="10" max="240" value="60" required /></label>
-          <label>Bài giải được<input id="sessionProblems" type="number" min="0" max="30" value="2" required /></label>
+              <label>Bài giải được<input id="sessionProblems" type="number" min="0" max="30" value="2" required /></label>
+              <label>Mã bài trong kho (không bắt buộc)<input id="sessionExerciseIds" type="text" placeholder="VD: m515, m603" /><small>Chỉ mã chưa từng AC mới được cộng vào tiến độ.</small></label>
+              <label class="check-row"><input id="sessionExternalPractice" type="checkbox" /><span>Đây là bài ngoài kho (cho phép nhập số thủ công)</span></label>
         </div>
         <label>Ghi chú ngắn<textarea id="sessionNote" rows="3" maxlength="180" placeholder="Ví dụ: nhầm điều kiện check(mid), cần làm lại bài chia mảng..."></textarea></label>
         <label>Mức buổi học hôm nay
@@ -402,7 +636,179 @@ using namespace std;
     <dialog id="studentDialog" class="app-dialog"><form method="dialog" id="studentForm"><div class="dialog-head"><div><p class="section-kicker">CLASS MODE</p><h2>Thêm học sinh</h2></div><button class="dialog-close" value="cancel" type="submit">×</button></div><label>Tên học sinh<input id="studentNameInput" maxlength="50" required /></label><label>Ghi chú / mục tiêu<input id="studentGoalInput" maxlength="100" /></label><button class="primary-button full" value="default" type="submit">Thêm vào lớp</button></form></dialog>
 
 
-    <dialog id="cloudDialog" class="app-dialog"><div class="cloud-dialog-body"><div class="dialog-head"><div><p class="section-kicker">V5.5 · SUPABASE SYNC</p><h2>Đồng bộ đa thiết bị</h2></div><button class="dialog-close" type="button" onclick="this.closest('dialog').close()">×</button></div><p class="cloud-help">Anon key có thể dùng ở frontend khi Row Level Security được bật. Chạy file <code>supabase-schema.sql</code> trong SQL Editor trước.</p><form id="cloudConfigForm"><label>Supabase Project URL<input id="supabaseUrlInput" type="url" placeholder="https://xxxx.supabase.co" required /></label><label>Publishable / anon key<input id="supabaseKeyInput" type="password" autocomplete="off" required /></label><button class="secondary-button full" type="submit">Lưu cấu hình</button></form><div class="cloud-auth"><p id="cloudAuthStatus">Chưa cấu hình Supabase</p><label>Email<input id="cloudEmailInput" type="email" placeholder="you@example.com" /></label><label>Mật khẩu (ít nhất 6 ký tự)<input id="cloudPasswordInput" type="password" placeholder="••••••••" /></label><div class="cloud-auth-actions"><button class="primary-button" id="cloudSignInBtn" type="button">Đăng nhập</button><button class="secondary-button" id="cloudSignUpBtn" type="button">Đăng ký mới</button></div><div class="cloud-alt-auth" style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;"><button class="text-button" id="copyPhoneConfigLinkBtn" type="button">📱 Copy link cài đặt cho điện thoại</button><button class="text-button" id="cloudMagicLinkButton" type="button">Gửi magic link</button><button class="text-button" id="cloudGoogleButton" type="button">Google Login</button></div><div class="cloud-utility-actions"><button class="text-button" id="importBackupButton" type="button">Nhập backup JSON</button><button class="text-button" id="joinCloudClassFromDialogButton" type="button">Tham gia lớp bằng mã</button></div><button class="text-button hidden" id="cloudSignOutButton" type="button">Đăng xuất cloud</button></div></div></dialog>
+    <dialog id="cloudDialog" class="app-dialog auth-dialog">
+      <div class="auth-dialog-body">
+        <div class="dialog-head">
+          <div>
+            <p class="section-kicker">CLOUD &amp; ACCOUNT</p>
+            <h2 id="authDialogTitle">Đồng bộ &amp; Tài khoản</h2>
+          </div>
+          <button class="dialog-close" id="closeCloudDialogBtn" type="button" onclick="this.closest('dialog').close()" aria-label="Đóng">×</button>
+        </div>
+
+        <!-- VIEW 1: CHƯA ĐĂNG NHẬP (GUEST VIEW) -->
+        <div id="authGuestView" class="auth-view">
+          <!-- Auth Navigation Tabs -->
+          <div class="auth-nav-tabs">
+            <button class="auth-tab-btn active" type="button" data-auth-tab="signin" id="tabBtnSignIn">Đăng nhập</button>
+            <button class="auth-tab-btn" type="button" data-auth-tab="signup" id="tabBtnSignUp">Đăng ký mới</button>
+            <button class="auth-tab-btn" type="button" data-auth-tab="config" id="tabBtnConfig">⚙ Máy chủ Supabase</button>
+          </div>
+
+          <!-- TAB 1: ĐĂNG NHẬP -->
+          <div class="auth-tab-pane active" id="authPaneSignIn">
+            <p class="auth-desc">Đăng nhập tài khoản để đồng bộ tiến độ học tập đa thiết bị và kích hoạt trợ lý AI Coach.</p>
+            <form id="signInForm" onsubmit="return false;">
+              <label>
+                Email
+                <div class="input-with-icon">
+                  <span class="input-icon">✉</span>
+                  <input id="cloudEmailInput" type="email" placeholder="tenban@gmail.com" autocomplete="email" required />
+                </div>
+              </label>
+
+              <label>
+                Mật khẩu
+                <div class="input-with-icon">
+                  <span class="input-icon">🔒</span>
+                  <input id="cloudPasswordInput" type="password" placeholder="••••••••" autocomplete="current-password" required />
+                  <button type="button" class="password-toggle-btn" id="toggleSignInPasswordBtn" aria-label="Hiện mật khẩu">👁️</button>
+                </div>
+              </label>
+
+              <button class="primary-button full auth-submit-btn" id="cloudSignInBtn" type="button">
+                <span class="btn-spinner hidden" id="signInSpinner"></span>
+                <span class="btn-text" id="signInBtnText">Đăng nhập ngay</span>
+              </button>
+            </form>
+
+            <div class="auth-divider"><span>Hoặc tiếp tục với</span></div>
+
+            <div class="auth-quick-actions">
+              <button class="secondary-button auth-quick-btn" id="cloudGoogleButton" type="button">
+                <svg width="15" height="15" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"/></svg>
+                <span>Google Login</span>
+              </button>
+              <button class="secondary-button auth-quick-btn" id="cloudMagicLinkButton" type="button">
+                <span>⚡ Magic Link email</span>
+              </button>
+            </div>
+
+            <div class="auth-switch-prompt">
+              Chưa có tài khoản? <button type="button" class="text-link-btn" id="toSignUpBtn">Đăng ký tài khoản mới</button>
+            </div>
+          </div>
+
+          <!-- TAB 2: ĐĂNG KÝ -->
+          <div class="auth-tab-pane hidden" id="authPaneSignUp">
+            <p class="auth-desc">Tạo tài khoản OLP 2026 hoàn toàn miễn phí để lưu lịch sử làm bài, sổ lỗi và nhận gợi ý từ Smart Coach.</p>
+            <form id="signUpForm" onsubmit="return false;">
+              <label>
+                Email
+                <div class="input-with-icon">
+                  <span class="input-icon">✉</span>
+                  <input id="cloudSignUpEmailInput" type="email" placeholder="tenban@gmail.com" autocomplete="email" required />
+                </div>
+              </label>
+
+              <label>
+                Mật khẩu (ít nhất 6 ký tự)
+                <div class="input-with-icon">
+                  <span class="input-icon">🔒</span>
+                  <input id="cloudSignUpPasswordInput" type="password" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" required />
+                  <button type="button" class="password-toggle-btn" id="toggleSignUpPasswordBtn" aria-label="Hiện mật khẩu">👁️</button>
+                </div>
+              </label>
+
+              <button class="primary-button full auth-submit-btn" id="cloudSignUpBtn" type="button">
+                <span class="btn-spinner hidden" id="signUpSpinner"></span>
+                <span class="btn-text" id="signUpBtnText">Tạo tài khoản mới</span>
+              </button>
+            </form>
+
+            <div class="auth-switch-prompt">
+              Đã có tài khoản? <button type="button" class="text-link-btn" id="toSignInBtn">Đăng nhập</button>
+            </div>
+          </div>
+
+          <!-- TAB 3: CẤU HÌNH MÁY CHỦ SUPABASE -->
+          <div class="auth-tab-pane hidden" id="authPaneConfig">
+            <div class="server-status-banner">
+              <span class="server-status-dot" id="serverStatusDot"></span>
+              <span id="serverStatusText">Chưa cấu hình máy chủ Supabase</span>
+            </div>
+            <p class="auth-desc">Điền thông tin kết nối Supabase của bạn (Project URL và anon public key) để bật tính năng đồng bộ đám mây và AI Coach.</p>
+            <form id="cloudConfigForm" onsubmit="return false;">
+              <label>
+                Project URL
+                <input id="supabaseUrlInput" type="url" placeholder="https://xyzcompany.supabase.co" required />
+              </label>
+              <label>
+                Anon public key
+                <input id="supabaseKeyInput" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required />
+              </label>
+              <button class="primary-button full auth-submit-btn" type="submit">Lưu cấu hình máy chủ</button>
+            </form>
+            <div class="auth-divider"><span>Tiện ích nhanh</span></div>
+            <button class="secondary-button full" id="copyPhoneConfigLinkBtn" type="button">
+              📱 Sao chép link 1-chạm gửi sang điện thoại
+            </button>
+          </div>
+
+        </div>
+
+        <!-- VIEW 2: ĐÃ ĐĂNG NHẬP (USER ACCOUNT & CLOUD HUB) -->
+        <div id="authUserView" class="auth-view hidden">
+          <div class="user-profile-hero">
+            <div class="user-avatar-circle" id="userAvatarCircle">K</div>
+            <div class="user-profile-info">
+              <strong id="userEmailDisplay">user@example.com</strong>
+              <span class="user-connection-badge">🟢 Đã kết nối Supabase Cloud</span>
+              <small id="cloudAuthStatus" class="user-status-meta">Đang đồng bộ</small>
+            </div>
+          </div>
+
+          <div class="user-quick-hub">
+            <button class="user-hub-card" id="dialogManualSyncBtn" type="button">
+              <span class="hub-icon">🔄</span>
+              <div class="hub-text">
+                <strong>Đồng bộ ngay</strong>
+                <small>Tải lên &amp; làm mới dữ liệu</small>
+              </div>
+            </button>
+
+            <button class="user-hub-card" id="joinCloudClassFromDialogButton" type="button">
+              <span class="hub-icon">🏫</span>
+              <div class="hub-text">
+                <strong>Tham gia lớp học</strong>
+                <small>Kết nối với giáo viên</small>
+              </div>
+            </button>
+
+            <button class="user-hub-card" id="importBackupButton" type="button">
+              <span class="hub-icon">💾</span>
+              <div class="hub-text">
+                <strong>Nhập sao lưu JSON</strong>
+                <small>Phục hồi file dữ liệu</small>
+              </div>
+            </button>
+
+            <button class="user-hub-card" id="editServerConfigBtn" type="button">
+              <span class="hub-icon">⚙️</span>
+              <div class="hub-text">
+                <strong>Máy chủ Cloud</strong>
+                <small>Kiểm tra &amp; sửa cấu hình</small>
+              </div>
+            </button>
+          </div>
+
+          <div class="user-account-footer">
+            <button class="danger-button" id="cloudSignOutButton" type="button">Đăng xuất tài khoản</button>
+          </div>
+        </div>
+
+      </div>
+    </dialog>
 
     <dialog id="problemParserDialog" class="app-dialog problem-parser-dialog">
       <div class="dialog-head">
@@ -467,34 +873,43 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
           <label>Thời lượng thi
             <select id="contestDurationSelect">
               <option value="60" selected>60 phút (Chuẩn Mixed Mock)</option>
-              <option value="90">90 phút (Thử thách OLP)</option>
-              <option value="120">120 phút (Đề đầy đủ)</option>
-              <option value="30">30 phút (Speedrun)</option>
+              <option value="90">90 phút (Thử thách OLP Không Chuyên)</option>
+              <option value="120">120 phút (Đề OLP Chuyên Tin)</option>
+              <option value="180">180 phút (ICPC / OLP Chuyên Toàn Diện)</option>
+              <option value="45">45 phút (Sprint Cup 2 bài)</option>
+              <option value="30">30 phút (Speedrun 2 bài)</option>
             </select>
           </label>
           <label>Bộ đề thi
             <select id="contestProblemSetSelect">
-              <option value="standard" selected>Chuẩn: 1 Dễ + 1 Vừa + 1 Khó</option>
+              <option value="standard" selected>Chuẩn OLP: 1 Dễ + 1 Vừa + 1 Khó</option>
+              <option value="olp_chuyen">Khối Chuyên Tin: 1 Vừa + 2 Khó/Cực khó</option>
+              <option value="olp_khong_chuyen">Khối Không Chuyên: 2 Dễ + 1 Vừa</option>
+              <option value="graph_dp">Focus: Đồ thị &amp; Quy hoạch động</option>
               <option value="unsolved">Ưu tiên bài chưa AC trong kho</option>
-              <option value="all">Ngẫu nhiên từ toàn bộ kho</option>
+              <option value="all">Ngẫu nhiên từ toàn bộ kho (104 bài)</option>
             </select>
           </label>
         </div>
 
         <div class="contest-preview-wrap">
           <div class="card-heading compact">
-            <div><p class="section-kicker">PROBLEMSET</p><h3>3 bài thi trong đề này</h3></div>
+            <div><p class="section-kicker">PROBLEMSET</p><h3>Bài thi trong đề này</h3></div>
             <button class="text-button" id="rerollContestProblemsBtn" type="button">↻ Đổi bộ bài khác</button>
           </div>
           <div id="contestPreviewProblems" class="contest-preview-grid"></div>
+          <div class="contest-share-bar" id="contestShareBar">
+            <span>👥 Thi cùng đồng đội / đội tuyển</span>
+            <button class="secondary-button compact-button" id="shareContestLinkBtn" type="button">🔗 Sao chép link thi chung</button>
+          </div>
         </div>
 
         <div class="contest-strategy-note">
           <strong>Chiến thuật OLP khuyên dùng:</strong>
           <ul>
-            <li><strong>00–05':</strong> Đọc lướt cả 3 đề, chọn bài dễ nhất làm trước.</li>
-            <li><strong>05–25':</strong> Chắc chắn ăn trọn điểm Bài 1 (Dễ) trước khi sang bài khó.</li>
-            <li><strong>25–55':</strong> Làm bài 2; nếu kẹt quá 15 phút không hướng thì đánh dấu stuck và chuyển bài.</li>
+            <li><strong>00–05':</strong> Đọc lướt các đề, phân loại bài theo dạng quen thuộc và chọn bài tự tin nhất làm trước.</li>
+            <li><strong>Chiến thuật ăn điểm:</strong> Chắc chắn ăn trọn test bài dễ trước khi sa đà vào subtask khó.</li>
+            <li><strong>Quy tắc 15 phút:</strong> Nếu sau 15 phút bế tắc hoàn toàn không có tiến triển, hãy lưu lại ý tưởng và chuyển sang bài khác.</li>
           </ul>
         </div>
 
@@ -564,8 +979,140 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
       </div>
     </dialog>
 
+    <!-- Dialog: Constraint to Big-O Calculator -->
+    <dialog id="constraintCalcDialog" class="app-dialog">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">CP ARSENAL · BIG-O CALCULATOR</p>
+          <h2>Ước lượng Độ phức tạp từ Ràng buộc N</h2>
+        </div>
+        <button class="dialog-close" id="closeConstraintCalcBtn" aria-label="Đóng" type="button">×</button>
+      </div>
+      <p class="cloud-help">Máy chấm Olympic / ICPC thông thường xử lý được khoảng <strong>10⁸ phép tính/giây</strong> (C++17 O2). Chọn ràng buộc để kiểm tra thuật toán hợp lệ:</p>
+      
+      <div class="form-row">
+        <label>Giá trị N của bài toán
+          <select id="calcNSelect">
+            <option value="12">N ≤ 12 (Duyệt hoán vị / nhánh cận)</option>
+            <option value="20">N ≤ 20 (Bitmask 2ⁿ)</option>
+            <option value="40">N ≤ 40 (Meet-in-the-middle 2ⁿ/²)</option>
+            <option value="400">N ≤ 400 (Floyd-Warshall / DP O(N³))</option>
+            <option value="2000">N ≤ 2,000 (DP O(N²))</option>
+            <option value="5000">N ≤ 5,000 (O(N²) tối ưu)</option>
+            <option value="100000" selected>N ≤ 100,000 (10⁵ - Chia để trị / Mo's / Segment Tree)</option>
+            <option value="200000">N ≤ 200,000 (2·10⁵ - Chuẩn OLP/Codeforces)</option>
+            <option value="1000000">N ≤ 1,000,000 (10⁶ - O(N log N) nhanh / O(N))</option>
+            <option value="10000000">N ≤ 10,000,000 (10⁷ - Tuyến tính O(N) / Sieve)</option>
+            <option value="1000000000000000000">N ≤ 10¹⁸ (O(log N) - BS / Nhân ma trận / Toán)</option>
+          </select>
+        </label>
+        <label>Giới hạn Thời gian (Time Limit)
+          <select id="calcTimeSelect">
+            <option value="0.5">0.5 giây (5·10⁷ ops)</option>
+            <option value="1.0" selected>1.0 giây (10⁸ ops - Chuẩn OLP)</option>
+            <option value="2.0">2.0 giây (2·10⁸ ops)</option>
+            <option value="5.0">5.0 giây (5·10⁸ ops)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="calc-ops-box">
+        <span>Ngân sách phép tính an toàn:</span>
+        <strong id="calcBudgetOps">100,000,000 ops</strong>
+      </div>
+
+      <div class="calc-table-wrap">
+        <table class="calc-table">
+          <thead>
+            <tr>
+              <th>Độ phức tạp Big-O</th>
+              <th>Số phép tính ước lượng</th>
+              <th>Đánh giá máy chấm</th>
+              <th>Thuật toán / Cấu trúc dữ liệu điển hình</th>
+            </tr>
+          </thead>
+          <tbody id="calcTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="contest-strategy-note" id="calcTipsBox">
+        <!-- Tips rendered dynamically -->
+      </div>
+    </dialog>
+
+    <!-- Dialog: C++ Stress Test Suite Generator -->
+    <dialog id="stressTestDialog" class="app-dialog" style="max-width: 780px;">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">CP ARSENAL · STRESS TESTING</p>
+          <h2>Bộ sinh Stress Test C++ 1-Chạm</h2>
+        </div>
+        <button class="dialog-close" id="closeStressTestBtn" aria-label="Đóng" type="button">×</button>
+      </div>
+      <p class="cloud-help">Khi bị Wrong Answer (WA) trên test ẩn, cách nhanh nhất là sinh test ngẫu nhiên để so sánh kết quả giữa <strong>Thuật trâu O(N²) đúng 100%</strong> và <strong>Code tối ưu của bạn</strong>.</p>
+
+      <div class="form-row">
+        <label>Dạng bài cần sinh test
+          <select id="stressTemplateSelect">
+            <option value="array">Mảng số nguyên (Prefix sum / Two pointers / Sorting)</option>
+            <option value="range_queries">Truy vấn đoạn (Fenwick / Segment Tree updates)</option>
+            <option value="graph">Đồ thị / Cây (Tree / Graph liên thông ngẫu nhiên)</option>
+            <option value="string">Xâu ký tự (String matching / Hash / Palindrome)</option>
+          </select>
+        </label>
+        <label>Kích thước test nhỏ để dễ debug
+          <select id="stressSizeSelect">
+            <option value="small" selected>N nhỏ: 5–10 (In ra màn hình để mắt nhìn thấy ngay)</option>
+            <option value="medium">N vừa: 100–1,000 (Kiểm tra corner cases)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="stress-tabs">
+        <button class="stress-tab-btn active" data-stress-tab="gen" type="button">gen.cpp (Sinh test)</button>
+        <button class="stress-tab-btn" data-stress-tab="brute" type="button">brute.cpp (Thuật trâu chuẩn)</button>
+        <button class="stress-tab-btn" data-stress-tab="sol" type="button">sol.cpp (Code của bạn)</button>
+        <button class="stress-tab-btn" data-stress-tab="script" type="button">stress.bat / stress.sh (Vòng lặp)</button>
+      </div>
+
+      <textarea id="stressCodeArea" class="stress-code-area" readonly spellcheck="false"></textarea>
+
+      <div class="code-review-actions" style="margin-top: 14px;">
+        <button class="primary-button" id="copyStressCodeBtn" type="button">📋 Sao chép file hiện tại</button>
+        <button class="secondary-button" id="downloadStressFilesBtn" type="button">💾 Tải toàn bộ script (.bat/.sh)</button>
+      </div>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Điều hướng di động">
+      <button class="bottom-tab active" type="button" data-tab="dashboard">
+        <span class="bottom-icon">📊</span>
+        <span>Tổng quan</span>
+      </button>
+      <button class="bottom-tab" type="button" data-tab="roadmap">
+        <span class="bottom-icon">🗺️</span>
+        <span>Lộ trình</span>
+      </button>
+      <button class="bottom-tab" type="button" data-tab="mock">
+        <span class="bottom-icon">🏆</span>
+        <span>Thi thử</span>
+        <span class="bottom-live-dot hidden" id="bottomLiveDot"></span>
+      </button>
+      <button class="bottom-tab" type="button" data-tab="ai-coach">
+        <span class="bottom-icon">🤖</span>
+        <span>AI Coach</span>
+      </button>
+      <button class="bottom-tab" type="button" data-tab="review">
+        <span class="bottom-icon">🧠</span>
+        <span>Sổ lỗi</span>
+      </button>
+    </nav>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
-    <script src="app.js?v=9"></script>
+    <script src="supabase-config.js"></script>
+    <script src="app.js?v=11"></script>
   </body>
 </html>
