@@ -1,5 +1,7 @@
 # Local sync data
-data/
+data/*
+!data/daily-roadmap.json
+!data/OLP_2026_Daily_Personalized_Roadmap.xlsx
 
 # Environment files
 .env
