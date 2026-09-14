@@ -10,6 +10,7 @@ Copy-Item -LiteralPath (Join-Path $sourceRoot "app.js") -Destination (Join-Path 
 Copy-Item -LiteralPath (Join-Path $sourceRoot "service-worker.js") -Destination (Join-Path $distRoot "service-worker.js") -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot "manifest.webmanifest") -Destination (Join-Path $distRoot "manifest.webmanifest") -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot "tracker-logic.js") -Destination (Join-Path $distRoot "tracker-logic.js") -Force
+Copy-Item -LiteralPath (Join-Path $sourceRoot "daily-roadmap-data.js") -Destination (Join-Path $distRoot "daily-roadmap-data.js") -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot "supabase-config.js") -Destination (Join-Path $distRoot "supabase-config.js") -Force
 Copy-Item -LiteralPath (Join-Path $sourceRoot "icons\icon.svg") -Destination (Join-Path $distRoot "icons\icon.svg") -Force
 

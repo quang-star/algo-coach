@@ -1537,8 +1537,59 @@ function renderStats() {
   $("#mockTotal").textContent = state.mocks.length;
 }
 
+function getTodayRoadmapEntry() {
+  const list = window.DAILY_ROADMAP_DATA?.daily_plan;
+  if (!list || !list.length) return null;
+  const now = new Date();
+  const todayKey = localDateKey(now);
+  let match = list.find((d) => d.Date === todayKey);
+  if (!match) {
+    match = list[0]; // Mặc định Ngày 1
+  }
+  return match;
+}
+
 function renderRecommendation() {
   const recommendation = getRecommendation();
+  const todayEntry = getTodayRoadmapEntry();
+
+  if (todayEntry) {
+    const dayIdx = (window.DAILY_ROADMAP_DATA.daily_plan.indexOf(todayEntry) + 1);
+    $("#nextTopicIcon").textContent = `D${dayIdx}`;
+    $("#nextTopic").textContent = todayEntry.Topic;
+    $("#nextReason").textContent = `Ngày ${dayIdx} (${todayEntry.Date}) · ${todayEntry.Week}: ${todayEntry["Học để giải quyết vấn đề gì?"] || recommendation.reason}`;
+    
+    const timePill = $("#todayTimePill");
+    if (timePill) timePill.textContent = "120 phút";
+
+    $("#sessionPlan").innerHTML = `
+      <div><span>20'</span><p><strong>Lý thuyết</strong><small>Đọc USACO Guide</small></p></div>
+      <div><span>25'</span><p><strong>D0 Learn</strong><small>Test template</small></p></div>
+      <div><span>35'</span><p><strong>D1 Standard</strong><small>Nhận diện pattern</small></p></div>
+      <div><span>40'</span><p><strong>D2 Mixed</strong><small>Mô hình hóa</small></p></div>`;
+
+    const exBar = $("#nextExercisesBar");
+    if (exBar) {
+      let html = "";
+      if (todayEntry["D0 / Learn"]) {
+        html += `<a href="${todayEntry["D0 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d0"><b>D0</b> ${todayEntry["D0 / Learn"]} ↗</a>`;
+      }
+      if (todayEntry["D1 / Standard"]) {
+        html += `<a href="${todayEntry["D1 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d1"><b>D1</b> ${todayEntry["D1 / Standard"]} ↗</a>`;
+      }
+      if (todayEntry["D2 / Mixed"]) {
+        html += `<a href="${todayEntry["D2 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d2"><b>D2</b> ${todayEntry["D2 / Mixed"]} ↗</a>`;
+      }
+      if (todayEntry["Learn / Template URL"]) {
+        html += `<a href="${todayEntry["Learn / Template URL"]}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill" style="border-style: dashed;">📖 Tài liệu học ↗</a>`;
+      }
+      exBar.innerHTML = html;
+    }
+
+    $("#startSessionButton").firstChild.textContent = "Ghi buổi học ";
+    return;
+  }
+
   $("#nextTopicIcon").textContent = recommendation.code;
   $("#nextTopic").textContent = recommendation.name;
   $("#nextReason").textContent = recommendation.reason;
@@ -2113,6 +2164,93 @@ function exportData() {
   URL.revokeObjectURL(url);
   showToast("Đã xuất bản sao JSON");
 }
+
+function renderDailyRoadmapList(filterWeek = "all", searchQuery = "") {
+  const container = $("#dailyRoadmapList");
+  if (!container || !window.DAILY_ROADMAP_DATA?.daily_plan) return;
+
+  const q = searchQuery.trim().toLowerCase();
+  let list = window.DAILY_ROADMAP_DATA.daily_plan;
+
+  if (filterWeek !== "all") {
+    list = list.filter((d) => d.Week === filterWeek);
+  }
+
+  if (q) {
+    list = list.filter((d) =>
+      (d.Topic || "").toLowerCase().includes(q) ||
+      (d["Học để giải quyết vấn đề gì?"] || "").toLowerCase().includes(q) ||
+      (d["D0 / Learn"] || "").toLowerCase().includes(q) ||
+      (d["D1 / Standard"] || "").toLowerCase().includes(q) ||
+      (d["D2 / Mixed"] || "").toLowerCase().includes(q)
+    );
+  }
+
+  const todayKey = localDateKey(new Date());
+
+  if (!list.length) {
+    container.innerHTML = `<div class="cloud-student-empty">Không tìm thấy ngày học nào phù hợp với bộ lọc.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map((day) => {
+    const isToday = day.Date === todayKey || (day.Date === "2026-09-15" && todayKey < "2026-09-15");
+    const mode = (day.Mode || "").toLowerCase();
+    const tagClass = mode.includes("checkpoint") ? "checkpoint" : mode.includes("mock") ? "mock" : "";
+    const dayIndex = window.DAILY_ROADMAP_DATA.daily_plan.indexOf(day) + 1;
+
+    return `
+      <div class="daily-roadmap-card ${isToday ? "today-card" : ""}">
+        <div class="daily-card-head">
+          <div>
+            <h4>Ngày ${dayIndex}: ${day.Topic} <small style="color: var(--muted); font-weight: normal;">(${day.Date} · ${day.Day})</small></h4>
+          </div>
+          <span class="daily-card-tag ${tagClass}">${day.Mode} · ${day.Week}</span>
+        </div>
+        <p class="daily-card-why">${day["Học để giải quyết vấn đề gì?"] || ""}</p>
+        
+        <div class="daily-card-exercises">
+          ${day["D0 / Learn"] ? `<a href="${day["D0 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d0"><b>D0</b> ${day["D0 / Learn"]} ↗</a>` : ""}
+          ${day["D1 / Standard"] ? `<a href="${day["D1 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d1"><b>D1</b> ${day["D1 / Standard"]} ↗</a>` : ""}
+          ${day["D2 / Mixed"] ? `<a href="${day["D2 URL"] || "#"}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill d2"><b>D2</b> ${day["D2 / Mixed"]} ↗</a>` : ""}
+          ${day["Learn / Template URL"] ? `<a href="${day["Learn / Template URL"]}" target="_blank" rel="noopener noreferrer" class="daily-exercise-pill" style="border-style: dashed;">📖 Tài liệu học ↗</a>` : ""}
+        </div>
+
+        <div class="daily-card-foot">
+          <span>⏱️ ${day["2h plan"] || "120 phút"}</span>
+          <span class="daily-card-pass">🎯 ${day["Tiêu chí PASS hôm nay"] || "Tự lực AC"}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function initDailyRoadmapModal() {
+  const btn = $("#openDailyRoadmapBtn");
+  const dialog = $("#dailyRoadmapDialog");
+  const closeBtn = $("#closeDailyRoadmapDialogBtn");
+  const weekSelect = $("#dailyRoadmapWeekSelect");
+  const searchInput = $("#dailyRoadmapSearch");
+
+  if (!btn || !dialog) return;
+
+  btn.addEventListener("click", () => {
+    renderDailyRoadmapList(weekSelect?.value || "all", searchInput?.value || "");
+    dialog.showModal();
+  });
+
+  closeBtn?.addEventListener("click", () => dialog.close());
+
+  weekSelect?.addEventListener("change", () => {
+    renderDailyRoadmapList(weekSelect.value, searchInput?.value || "");
+  });
+
+  searchInput?.addEventListener("input", () => {
+    renderDailyRoadmapList(weekSelect?.value || "all", searchInput.value);
+  });
+}
+
+initDailyRoadmapModal();
 
 $("#startSessionButton").addEventListener("click", () => {
   if (getRecommendation().mock) $("#mockDialog").showModal();

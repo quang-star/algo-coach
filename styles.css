@@ -4803,3 +4803,118 @@ body.modal-open .mobile-bottom-nav {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   DAILY ROADMAP (85 DAYS SYLLABUS) STYLES
+   ========================================================================== */
+.next-exercises-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.daily-exercise-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.daily-exercise-pill:hover {
+  border-color: var(--lime);
+  background: rgba(52, 211, 153, 0.08);
+  transform: translateY(-2px);
+  color: var(--lime);
+}
+.daily-exercise-pill b {
+  font: 700 11px "DM Mono", monospace;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+.daily-exercise-pill.d0 b { background: rgba(56, 189, 248, 0.15); color: var(--cyan); }
+.daily-exercise-pill.d1 b { background: rgba(52, 211, 153, 0.15); color: var(--lime); }
+.daily-exercise-pill.d2 b { background: rgba(251, 191, 36, 0.15); color: var(--amber); }
+
+.daily-roadmap-card {
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--line);
+  transition: all 0.2s ease;
+}
+.daily-roadmap-card:hover {
+  border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+.daily-roadmap-card.today-card {
+  border-color: var(--lime);
+  background: rgba(52, 211, 153, 0.06);
+  box-shadow: 0 0 16px rgba(52, 211, 153, 0.1);
+}
+.daily-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.daily-card-head h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.daily-card-tag {
+  font: 700 11px "DM Mono", monospace;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+}
+.daily-card-tag.checkpoint {
+  background: rgba(251, 113, 133, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(251, 113, 133, 0.3);
+}
+.daily-card-tag.mock {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.daily-card-why {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.daily-card-exercises {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+.daily-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  color: var(--subtle);
+}
+.daily-card-pass {
+  color: var(--lime);
+  font-size: 12px;
+  font-style: italic;
+}
+

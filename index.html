@@ -105,24 +105,32 @@
           <article class="next-card">
             <div class="card-heading">
               <div>
-                <p class="section-kicker">NEXT SESSION</p>
-                <h2 id="todayTitle">Buổi học tiếp theo</h2>
+                <p class="section-kicker">85-DAY ROADMAP · 2H/DAY</p>
+                <h2 id="todayTitle">Kế hoạch hôm nay</h2>
               </div>
-              <span class="time-pill">60 phút</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="secondary-button compact-button" id="openDailyRoadmapBtn" type="button" title="Mở danh sách 85 ngày">📅 Lịch 85 ngày</button>
+                <span class="time-pill" id="todayTimePill">120 phút</span>
+              </div>
             </div>
 
             <div class="next-topic-row">
-              <div class="topic-icon" id="nextTopicIcon">BS</div>
+              <div class="topic-icon" id="nextTopicIcon">D1</div>
               <div>
-                <p class="next-label" id="nextReason">Đang tiếp nối nền tảng</p>
-                <h3 id="nextTopic">Binary search on answer</h3>
+                <p class="next-label" id="nextReason">Đang tải lộ trình...</p>
+                <h3 id="nextTopic">Prefix sum + difference</h3>
               </div>
             </div>
 
             <div class="session-plan" id="sessionPlan">
-              <div><span>10'</span><p><strong>Ôn</strong><small>Đọc lại note &amp; template</small></p></div>
-              <div><span>40'</span><p><strong>Giải</strong><small>2 bài đúng chủ đề</small></p></div>
-              <div><span>10'</span><p><strong>Chốt</strong><small>Ghi lỗi và pattern</small></p></div>
+              <div><span>20'</span><p><strong>Lý thuyết</strong><small>Đọc USACO Guide</small></p></div>
+              <div><span>25'</span><p><strong>D0 Learn</strong><small>Test template</small></p></div>
+              <div><span>35'</span><p><strong>D1 Standard</strong><small>Nhận diện pattern</small></p></div>
+              <div><span>40'</span><p><strong>D2 Mixed</strong><small>Mô hình hóa</small></p></div>
+            </div>
+
+            <div class="next-exercises-bar" id="nextExercisesBar" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+              <!-- Dynamic exercise links -->
             </div>
 
             <div class="next-actions">
@@ -1085,6 +1093,41 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
       </div>
     </dialog>
 
+    <!-- Dialog Lộ trình 85 ngày cá nhân (Excel Roadmap) -->
+    <dialog id="dailyRoadmapDialog" class="app-dialog roadmap-dialog" style="max-width: 980px; width: 95vw;">
+      <div class="dialog-head">
+        <div>
+          <p class="section-kicker">PERSONALIZED SYLLABUS · 85 NGÀY</p>
+          <h2>Lộ trình Luyện thi OLP 2026</h2>
+        </div>
+        <button class="dialog-close" id="closeDailyRoadmapDialogBtn" aria-label="Đóng" type="button">×</button>
+      </div>
+      <p class="cloud-help">Lộ trình 2 giờ/ngày từ 15/09 đến 08/12: Mỗi ngày 3 bài (D0 Learn · D1 Standard · D2 Transfer), tài liệu USACO/MarisaOJ và tiêu chí PASS cụ thể.</p>
+
+      <div class="roadmap-filter-bar" style="display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0;">
+        <input type="text" id="dailyRoadmapSearch" placeholder="🔍 Tìm theo topic, bài tập..." class="form-input" style="flex: 1; min-width: 220px;" />
+        <select id="dailyRoadmapWeekSelect" class="form-input" style="width: auto;">
+          <option value="all">Tất cả các tuần (12 Tuần + Final)</option>
+          <option value="W1">Tuần 1: Nền tảng phản xạ (15/09 - 21/09)</option>
+          <option value="W2">Tuần 2: STL + Stack + Compression (22/09 - 28/09)</option>
+          <option value="W3">Tuần 3: DP Cơ bản (29/09 - 05/10)</option>
+          <option value="W4">Tuần 4: DP Transfer (06/10 - 12/10)</option>
+          <option value="W5">Tuần 5: Math & Bitwise (13/10 - 19/10)</option>
+          <option value="W6">Tuần 6: Graph Core (20/10 - 26/10)</option>
+          <option value="W7">Tuần 7: DAG / MST / Tree (27/10 - 02/11)</option>
+          <option value="W8">Tuần 8: Fenwick / Segment (03/11 - 09/11)</option>
+          <option value="W9">Tuần 9: Strings & Constructive (10/11 - 16/11)</option>
+          <option value="W10">Tuần 10: Ghép kỹ thuật (17/11 - 23/11)</option>
+          <option value="W11">Tuần 11: OLP 2022 - 2023 Subtasks (24/11 - 30/11)</option>
+          <option value="W12">Tuần 12: Full Mock 2024 & 2025 (01/12 - 07/12)</option>
+        </select>
+      </div>
+
+      <div id="dailyRoadmapList" class="daily-roadmap-cards-grid" style="max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 6px;">
+        <!-- Rendered dynamically -->
+      </div>
+    </dialog>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Điều hướng di động">
@@ -1114,6 +1157,7 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
     <script src="supabase-config.js"></script>
     <script src="tracker-logic.js?v=11"></script>
-    <script src="app.js?v=12"></script>
+    <script src="daily-roadmap-data.js?v=1"></script>
+    <script src="app.js?v=13"></script>
   </body>
 </html>
