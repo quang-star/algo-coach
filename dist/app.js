@@ -319,6 +319,166 @@ const APPLICATIONS = {
   }
 };
 
+// Phase 1 is intentionally more than a template sheet. Each deep dive gives the
+// learner a mental model, a short correctness argument, a dry run and a real
+// implementation checklist before practice is unlocked.
+const PHASE_ONE_DEEP_DIVES = {
+  "containers": {
+    chapters: ["Chọn cấu trúc theo thao tác", "Vector và tính liên tục", "Set/Map và thứ tự", "Queue/Deque/Heap"],
+    intuition: "Đừng bắt đầu bằng tên cấu trúc dữ liệu. Hãy liệt kê thao tác mà đề bắt buộc: truy cập chỉ số, tìm kiếm, lấy min/max hay lấy phần tử đến trước. Cấu trúc đúng là cấu trúc làm các thao tác quan trọng đủ nhanh và vẫn giữ đúng thông tin bài cần.",
+    proof: "Nếu thuật toán chỉ thêm ở cuối và duyệt theo chỉ số, vector giữ đủ toàn bộ trạng thái với chi phí amortized O(1) cho push_back. Nếu cần phần tử nhỏ nhất còn lại sau mỗi lần xóa, set hoặc min-heap duy trì đúng tập ứng viên; phần tử lấy ra luôn là nhỏ nhất theo invariant của cấu trúc.",
+    walkthrough: {
+      title: "Loại trùng [4, 2, 4, 1] rồi lấy số nhỏ thứ 2",
+      headers: ["Bước", "Cấu trúc", "Trạng thái", "Kết luận"],
+      rows: [["1", "set<int>", "{} → {4}", "Tự giữ thứ tự"], ["2", "set<int>", "{2,4}", "2 đứng trước 4"], ["3", "set<int>", "{2,4}", "4 trùng nên không đổi"], ["4", "set → vector", "[1,2,4]", "Phần tử thứ 2 là 2"]]
+    },
+    solution: `set<int> uniqueValues(a.begin(), a.end());
+if (k < 1 || k > (int)uniqueValues.size()) {
+  cout << -1;                 // k không hợp lệ
+  return;
+}
+auto it = uniqueValues.begin();
+advance(it, k - 1);           // set không có operator[]
+cout << *it;`,
+    checklist: ["Có cần giữ phần tử trùng không?", "Có cần thứ tự tăng hay thứ tự chèn?", "Thao tác nóng nhất có độ phức tạp bao nhiêu?", "Iterator/reference có thể bị vô hiệu không?"],
+    questions: [
+      { question: "Cần BFS theo từng lớp từ đỉnh s. Cấu trúc chính nào đúng?", options: ["stack", "queue", "set", "max-heap"], answer: 1, explanation: "BFS cần FIFO để các đỉnh ở lớp gần được xử lý trước." },
+      { question: "Cần luôn lấy giá trị nhỏ nhất trong khi vẫn thêm phần tử mới. Chọn gì?", options: ["vector chưa sort", "queue", "min-heap", "stack"], answer: 2, explanation: "Min-heap hỗ trợ thêm và lấy nhỏ nhất trong O(log n)." },
+      { question: "Điểm nguy hiểm của map[key] khi chỉ muốn kiểm tra tồn tại?", options: ["Chạy O(n)", "Tự chèn key mới", "Xóa key", "Không compile"], answer: 1, explanation: "operator[] tạo phần tử với giá trị mặc định; dùng find/contains nếu chỉ tra cứu." }
+    ]
+  },
+  "prefix": {
+    chapters: ["Từ tổng lặp lại tới tiền xử lý", "Prefix 1D", "Prefix 2D", "Mảng hiệu"],
+    intuition: "Hai đoạn [0..r] và [0..l-1] có phần đầu giống nhau. Lấy tổng lớn trừ tổng nhỏ sẽ triệt tiêu phần đứng trước l, chỉ còn đúng đoạn [l..r]. pref[0]=0 là một lính canh giúp công thức đúng cả khi l=0.",
+    proof: "Theo định nghĩa pref[i] = a[0]+…+a[i-1]. Vì vậy pref[r+1]−pref[l] = (a[0]+…+a[r])−(a[0]+…+a[l−1]) = a[l]+…+a[r]. Mỗi phần tử ngoài đoạn bị triệt tiêu đúng một lần.",
+    walkthrough: {
+      title: "a = [2, 5, -1, 4], hỏi tổng [1,3]",
+      headers: ["i", "a[i]", "pref trước", "pref sau"],
+      rows: [["0", "2", "pref[0]=0", "pref[1]=2"], ["1", "5", "2", "pref[2]=7"], ["2", "-1", "7", "pref[3]=6"], ["3", "4", "6", "pref[4]=10"], ["Query", "[1,3]", "pref[4]−pref[1]", "10−2=8"]]
+    },
+    solution: `vector<long long> pref(n + 1, 0);
+for (int i = 0; i < n; ++i) {
+  pref[i + 1] = pref[i] + a[i]; // tổng i+1 phần tử đầu
+}
+while (q--) {
+  int l, r; cin >> l >> r;      // đoạn 0-based, hai đầu đóng
+  cout << pref[r + 1] - pref[l] << '\\n';
+}`,
+    checklist: ["Đề dùng chỉ số 0-based hay 1-based?", "pref[i] đại diện chính xác điều gì?", "Tổng lớn nhất có cần long long?", "Có update xen kẽ query không?"],
+    questions: [
+      { question: "Với pref[i+1]=pref[i]+a[i], tổng a[l..r] là gì?", options: ["pref[r]-pref[l]", "pref[r+1]-pref[l]", "pref[r]-pref[l-1]", "pref[r+1]+pref[l]"], answer: 1, explanation: "pref[r+1] chứa đến a[r], pref[l] loại đúng phần trước l." },
+      { question: "Vì sao nên dành pref[0]=0?", options: ["Để sort nhanh", "Để công thức xử lý được l=0", "Để giảm O(n) bộ nhớ", "Để tránh số âm"], answer: 1, explanation: "Khi l=0, ta trừ pref[0]=0 mà không cần nhánh đặc biệt." },
+      { question: "Có point update xen kẽ range sum. Prefix sum thường không đủ vì sao?", options: ["Query O(n)", "Một update có thể phải sửa O(n) prefix", "Không chứa số âm", "Chỉ dùng cho mảng sort"], answer: 1, explanation: "Update a[i] ảnh hưởng mọi pref phía sau; Fenwick/segment tree phù hợp hơn." }
+    ]
+  },
+  "two-pointers": {
+    chapters: ["Invariant cửa sổ", "Hai đầu trên mảng sort", "Cửa sổ biến đổi", "Khi số âm phá thuật toán"],
+    intuition: "Thay vì xét lại mọi đoạn, ta giữ một cửa sổ đang hợp lệ. Right đưa dữ liệu mới vào; left chỉ đi sang phải để loại phần gây vi phạm. Mỗi phần tử vào và ra nhiều nhất một lần nên hai vòng lặp lồng nhau vẫn là O(n).",
+    proof: "Với a[i] không âm, khi sum>S thì tăng right không thể làm sum giảm; mọi cửa sổ cùng left và kết thúc xa hơn đều sai. Ta buộc phải tăng left. Sau khi sum≤S, left hiện tại là biên nhỏ nhất còn hợp lệ cho right này, nên r−l+1 là độ dài tốt nhất kết thúc tại r.",
+    walkthrough: {
+      title: "Đoạn dài nhất có tổng ≤ 7 trong [2,1,5,1,2]",
+      headers: ["r", "Thêm", "Co left", "Cửa sổ hợp lệ / ans"],
+      rows: [["0", "+2 → 2", "Không", "[0,0] / 1"], ["1", "+1 → 3", "Không", "[0,1] / 2"], ["2", "+5 → 8", "Bỏ 2 → 6", "[1,2] / 2"], ["3", "+1 → 7", "Không", "[1,3] / 3"], ["4", "+2 → 9", "Bỏ 1,5 → 3", "[3,4] / 3"]]
+    },
+    solution: `int left = 0, answer = 0;
+long long sum = 0;
+for (int right = 0; right < n; ++right) {
+  sum += a[right];
+  while (left <= right && sum > S) {
+    sum -= a[left++];         // khôi phục invariant sum <= S
+  }
+  answer = max(answer, right - left + 1);
+}`,
+    checklist: ["Cửa sổ đang giữ invariant gì?", "Khi vi phạm, dịch left có sửa được không?", "Dữ liệu có số âm làm mất đơn điệu không?", "Cập nhật đáp án trước hay sau vòng while?"],
+    questions: [
+      { question: "Điều kiện quan trọng cho sliding window tổng ≤ S là gì?", options: ["Mảng đảo ngược", "Phần tử không âm", "n chẵn", "S nguyên tố"], answer: 1, explanation: "Không âm tạo tính đơn điệu khi mở rộng và co cửa sổ." },
+      { question: "Vì sao vòng while lồng for vẫn O(n)?", options: ["Compiler tối ưu", "Left tăng tổng cộng tối đa n lần", "While chạy một lần", "Do mảng sort"], answer: 1, explanation: "Cả left và right chỉ dịch sang phải tối đa n bước." },
+      { question: "Khi nào cập nhật độ dài cửa sổ hợp lệ?", options: ["Trước khi thêm a[r]", "Trước vòng co", "Sau khi khôi phục invariant", "Chỉ cuối chương trình"], answer: 2, explanation: "Chỉ sau vòng while ta mới chắc chắn [left,right] hợp lệ." }
+    ]
+  },
+  "binary-search": {
+    chapters: ["Không gian tìm kiếm", "Lower/Upper bound", "First true", "Last true và lỗi biên"],
+    intuition: "Binary search không đơn thuần là tìm một số trong mảng; nó tìm điểm đổi trạng thái của một dãy đơn điệu. Mỗi lần hỏi tại mid, câu trả lời cho phép loại chắc chắn một nửa miền mà không bỏ sót đáp án.",
+    proof: "Với lower_bound, invariant là mọi vị trí <l có giá trị <x và mọi vị trí ≥r có giá trị ≥x. Nếu a[mid]<x, mid không thể là đáp án nên đặt l=mid+1. Ngược lại mid vẫn có thể là đáp án nên giữ nó bằng r=mid. Khi l=r, đó chính là biên đầu tiên ≥x.",
+    walkthrough: {
+      title: "lower_bound x=3 trong [1,3,3,7]",
+      headers: ["l,r", "mid", "So sánh", "Miền mới"],
+      rows: [["0,4", "2", "a[2]=3 ≥ 3", "r=2"], ["0,2", "1", "a[1]=3 ≥ 3", "r=1"], ["0,1", "0", "a[0]=1 < 3", "l=1"], ["1,1", "—", "Dừng", "Đáp án 1"]]
+    },
+    solution: `int left = 0, right = n;       // miền nửa mở [left, right)
+while (left < right) {
+  int mid = left + (right - left) / 2;
+  if (a[mid] < x) left = mid + 1;
+  else right = mid;              // giữ mid vì mid có thể là đáp án
+}
+// left có thể bằng n: luôn kiểm tra trước khi đọc a[left]
+bool exists = left < n && a[left] == x;`,
+    checklist: ["Miền là [l,r] hay [l,r)?", "Predicate có thật sự đơn điệu?", "Mid bị loại hay vẫn có thể là đáp án?", "Kết quả n/không tồn tại được xử lý chưa?"],
+    questions: [
+      { question: "lower_bound trả vị trí nào?", options: ["Cuối cùng <x", "Đầu tiên =x", "Đầu tiên ≥x", "Đầu tiên >x"], answer: 2, explanation: "Đây là phần tử đầu tiên không nhỏ hơn x." },
+      { question: "Với miền [l,r), vì sao khởi tạo r=n an toàn?", options: ["a[n] luôn bằng 0", "Không bao giờ truy cập a[r]", "Để sort", "Vì n là đáp án"], answer: 1, explanation: "r là biên loại trừ; code chỉ đọc a[mid] với mid<r≤n." },
+      { question: "First true dùng r=mid khi check(mid)=true vì sao?", options: ["Mid chắc chắn sai", "Mid vẫn có thể là true đầu tiên", "Để vòng lặp nhanh hơn", "Để tránh overflow"], answer: 1, explanation: "Ta bỏ phần bên phải mid nhưng phải giữ mid làm ứng viên." }
+    ]
+  },
+  "bs-answer": {
+    chapters: ["Ẩn đáp án thành x", "Thiết kế check(x)", "Chứng minh đơn điệu", "Chọn cận và biên"],
+    intuition: "Khi khó dựng trực tiếp đáp án tối ưu, hãy đoán một giá trị x rồi hỏi: ‘x có khả thi không?’. Nếu mọi x lớn hơn cũng khả thi (hoặc mọi x nhỏ hơn), câu hỏi yes/no tạo thành một dãy đơn điệu để tìm biên.",
+    proof: "Trong bài chia mảng số không âm với tổng mỗi đoạn ≤x, nếu x khả thi thì x+1 cũng khả thi vì chính cách chia cũ vẫn thỏa. Do đó miền có dạng false…true. Greedy mở đoạn mới chỉ khi bắt buộc, nên dùng số đoạn ít nhất đối với x; nếu greedy cần quá k đoạn thì không cách chia nào khác cứu được x.",
+    walkthrough: {
+      title: "Chia [7,2,5,10,8] thành ≤2 đoạn, minimize tổng lớn nhất",
+      headers: ["mid", "Greedy chia", "Số đoạn", "Kết luận"],
+      rows: [["21", "[7,2,5] [10,8]", "2", "Khả thi → hạ high"], ["15", "[7,2,5] [10] [8]", "3", "Không → tăng low"], ["18", "[7,2,5] [10,8]", "2", "Khả thi"], ["17", "[7,2,5] [10] [8]", "3", "Không"], ["Kết thúc", "low=high=18", "2", "Đáp án 18"]]
+    },
+    solution: `auto feasible = [&](long long limit) {
+  int groups = 1; long long current = 0;
+  for (long long x : a) {
+    if (current + x > limit) { ++groups; current = 0; }
+    current += x;
+  }
+  return groups <= k;
+};
+long long low = *max_element(a.begin(), a.end());
+long long high = accumulate(a.begin(), a.end(), 0LL);
+while (low < high) {
+  long long mid = low + (high - low) / 2;
+  if (feasible(mid)) high = mid; else low = mid + 1;
+}`,
+    checklist: ["x đại diện đại lượng nào?", "check(x) có đủ nhanh không?", "Chiều đơn điệu là false→true hay true→false?", "Hai cận có chắc chắn chứa đáp án?"],
+    questions: [
+      { question: "Minimize maximum subarray sum nên dùng cận nào?", options: ["[0,n]", "[min,max]", "[max(a),sum(a)]", "[1,1e9] luôn đúng"], answer: 2, explanation: "Mỗi đoạn phải chứa phần tử lớn nhất; gộp tất cả cho cận trên sum." },
+      { question: "Nếu limit x khả thi, x+1 thế nào với bài trên?", options: ["Luôn không khả thi", "Cũng khả thi", "Không xác định", "Chỉ đúng khi k=1"], answer: 1, explanation: "Cách chia cũ vẫn có mọi tổng đoạn ≤x+1." },
+      { question: "Vì sao greedy check mở đoạn mới càng muộn càng tốt?", options: ["Để sort mảng", "Nó tối thiểu hóa số đoạn với limit đã cho", "Để dùng ít bộ nhớ", "Vì đề bắt buộc"], answer: 1, explanation: "Với số không âm, cắt sớm không thể giúp nhét được nhiều phần tử hơn vào ít đoạn hơn." }
+    ]
+  },
+  "sorting-greedy": {
+    chapters: ["Sort để lộ cấu trúc", "Quyết định cục bộ", "Invariant", "Exchange argument và phản ví dụ"],
+    intuition: "Greedy không có nghĩa là chọn thứ trông tốt nhất. Ta cần một thứ tự khiến mỗi quyết định cục bộ để lại nhiều lựa chọn nhất cho tương lai. Với chọn interval, kết thúc sớm nhất giải phóng trục thời gian sớm nhất.",
+    proof: "Gọi A là interval kết thúc sớm nhất và O là nghiệm tối ưu chọn interval đầu tiên B. Thay B bằng A không làm mất interval nào phía sau vì end(A)≤end(B). Nghiệm mới vẫn có cùng số lượng. Lặp luận cứ này cho phần còn lại chứng minh greedy đạt tối ưu.",
+    walkthrough: {
+      title: "Chọn nhiều interval không giao: (1,4), (2,3), (3,5), (4,7)",
+      headers: ["Sau sort end", "Xét", "Quyết định", "Lịch đang giữ"],
+      rows: [["(2,3)", "start 2", "Chọn", "[(2,3)]"], ["(1,4)", "1 < end 3", "Bỏ", "[(2,3)]"], ["(3,5)", "3 ≥ 3", "Chọn", "[(2,3),(3,5)]"], ["(4,7)", "4 < 5", "Bỏ", "2 interval"]]
+    },
+    solution: `sort(intervals.begin(), intervals.end(), [](auto a, auto b) {
+  if (a.second != b.second) return a.second < b.second;
+  return a.first < b.first;
+});
+int answer = 0, lastEnd = numeric_limits<int>::min();
+for (auto [start, finish] : intervals) {
+  if (start >= lastEnd) {      // đổi thành > nếu chạm đầu mút bị coi là giao
+    ++answer;
+    lastEnd = finish;
+  }
+}`,
+    checklist: ["Tiêu chí sort có ý nghĩa gì?", "Invariant sau mỗi lựa chọn là gì?", "Có thể đổi lựa chọn của optimum sang greedy không?", "Quy ước hai interval chạm đầu mút có giao không?"],
+    questions: [
+      { question: "Để chọn nhiều interval không giao nhất, thường sort theo gì?", options: ["Start tăng", "Độ dài tăng", "End tăng", "Tên interval"], answer: 2, explanation: "Kết thúc sớm nhất để lại nhiều không gian nhất cho các lựa chọn sau." },
+      { question: "Exchange argument dùng để làm gì?", options: ["Tăng tốc sort", "Chứng minh đổi lựa chọn tối ưu sang greedy không làm xấu", "Tìm counterexample bằng code", "Giảm bộ nhớ"], answer: 1, explanation: "Nó nối quyết định cục bộ với một nghiệm tối ưu toàn cục." },
+      { question: "Comparator a<=b sai ở điểm nào?", options: ["Chậm", "Không tạo strict weak ordering", "Không sort số âm", "Chỉ dùng cho vector"], answer: 1, explanation: "comp(x,x) phải false; <= khiến yêu cầu của std::sort bị vi phạm." }
+    ]
+  }
+};
+
 const EXERCISES = [
   // Phase 1: Containers (STL)
   { id: "c1621", topicId: "containers", title: "Distinct Numbers (Set / Unique)", url: "https://cses.fi/problemset/task/1621", difficulty: "easy", points: 50, platform: "cses" },
@@ -666,7 +826,16 @@ let currentActiveTab = "dashboard";
 let toastTimer;
 
 const $ = (selector) => document.querySelector(selector);
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const {
+  calculateMockScore,
+  getContestTargets,
+  classifyComplexityOps,
+  calculateSM2NextLevel,
+  matchesPlatformFilter,
+  filterExercisesByPlatform,
+  shouldBlockEmptyManualSession
+} = typeof TrackerLogic !== 'undefined' ? TrackerLogic : {};
+const clamp = (value, min, max) => (typeof TrackerLogic !== 'undefined' && TrackerLogic.clamp ? TrackerLogic.clamp(value, min, max) : Math.min(max, Math.max(min, value)));
 const escapeHTML = (value) => String(value)
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
@@ -970,17 +1139,9 @@ function handleSM2Rating(quality) {
   const card = quickReviewCards[quickReviewIndex];
   if (!card) return;
   const current = state.reviews?.[card.topicId] || { level: 0 };
-  let nextLevel = Number(current.level || 0);
-
-  if (quality === 'again') {
-    nextLevel = 0;
-  } else if (quality === 'hard') {
-    nextLevel = Math.max(0, nextLevel - 1);
-  } else if (quality === 'good') {
-    nextLevel = Math.min(REVIEW_INTERVALS.length - 1, nextLevel + 1);
-  } else if (quality === 'easy') {
-    nextLevel = Math.min(REVIEW_INTERVALS.length - 1, nextLevel + 2);
-  }
+  const nextLevel = typeof calculateSM2NextLevel === 'function'
+    ? calculateSM2NextLevel(current.level, quality, REVIEW_INTERVALS.length - 1)
+    : (quality === 'again' ? 0 : quality === 'hard' ? Math.max(0, Number(current.level || 0) - 1) : quality === 'good' ? Math.min(REVIEW_INTERVALS.length - 1, Number(current.level || 0) + 1) : Math.min(REVIEW_INTERVALS.length - 1, Number(current.level || 0) + 2));
 
   const days = REVIEW_INTERVALS[nextLevel] || 1;
   state.reviews[card.topicId] = { level: nextLevel, lastReviewedAt: new Date().toISOString() };
@@ -1465,7 +1626,9 @@ function renderExercises() {
   const visible = EXERCISES.filter((exercise) => {
     const matchesFilter = activeExerciseFilter === "all" || exercise.difficulty === activeExerciseFilter;
     if (!matchesFilter) return false;
-    const matchesPlatform = activePlatformFilter === "all" || (exercise.platform || "marisa") === activePlatformFilter;
+    const matchesPlatform = typeof matchesPlatformFilter === 'function'
+      ? matchesPlatformFilter(exercise, activePlatformFilter)
+      : (activePlatformFilter === "all" || (exercise.platform || "marisa") === activePlatformFilter);
     if (!matchesPlatform) return false;
     if (!query) return true;
     const titleMatch = exercise.title.toLowerCase().includes(query);
@@ -1590,7 +1753,7 @@ function renderSkillRadarChart() {
     overallLabel.textContent = avgAll >= 80 ? "Sẵn sàng thi (Master)" : avgAll >= 50 ? "Khá vững (Advanced)" : avgAll >= 25 ? "Đang tiến bộ (Intermediate)" : "Mới bắt đầu (Beginner)";
   }
 
-  const cx = 170, cy = 160, r = 100;
+  const cx = 190, cy = 170, r = 95;
   const numAxes = axes.length;
   const angleStep = (2 * Math.PI) / numAxes;
   const startAngle = -Math.PI / 2;
@@ -1614,7 +1777,7 @@ function renderSkillRadarChart() {
     const yEnd = cy + Math.sin(angle) * r;
     axisLinesAndLabels += `<line x1="${cx}" y1="${cy}" x2="${xEnd.toFixed(1)}" y2="${yEnd.toFixed(1)}" class="radar-axis-line" />`;
 
-    const labelR = r + 26;
+    const labelR = r + 28;
     const lx = cx + Math.cos(angle) * labelR;
     const ly = cy + Math.sin(angle) * labelR;
     axisLinesAndLabels += `
@@ -1710,10 +1873,25 @@ function practiceLinksHTML(topicId, lesson) {
     </a>`).join("")}</div>`;
 }
 
+function deepDiveHTML(topicId) {
+  const deep = PHASE_ONE_DEEP_DIVES[topicId];
+  if (!deep) return "";
+  return `
+    <div class="deep-dive-banner"><span>PHASE 1 · BÀI HỌC CHUYÊN SÂU</span><strong>Không chỉ chép template — phải giải thích được vì sao nó đúng.</strong></div>
+    <div class="lesson-block"><h3><span>01</span>Lộ trình trong chủ đề</h3><div class="chapter-track">${deep.chapters.map((chapter, index) => `<div><b>${String(index + 1).padStart(2, "0")}</b><span>${escapeHTML(chapter)}</span></div>`).join("")}</div></div>
+    <div class="lesson-block"><h3><span>02</span>Trực giác cốt lõi</h3><div class="concept-card intuition-card"><span>MENTAL MODEL</span><p>${escapeHTML(deep.intuition)}</p></div></div>
+    <div class="lesson-block"><h3><span>03</span>Vì sao thuật toán đúng?</h3><div class="concept-card proof-card"><span>LẬP LUẬN</span><p>${escapeHTML(deep.proof)}</p></div></div>
+    <div class="lesson-block"><h3><span>04</span>Mô phỏng từng bước</h3><div class="walkthrough"><strong>${escapeHTML(deep.walkthrough.title)}</strong><div class="walkthrough-scroll"><table><thead><tr>${deep.walkthrough.headers.map((header) => `<th>${escapeHTML(header)}</th>`).join("")}</tr></thead><tbody>${deep.walkthrough.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHTML(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div></div>
+    <div class="lesson-block"><h3><span>05</span>Lời giải mẫu có chú thích</h3><div class="code-wrap"><div class="code-head"><span>C++17 · SOLUTION WALKTHROUGH</span><button class="deep-copy" type="button">COPY</button></div><pre><code>${escapeHTML(deep.solution)}</code></pre></div></div>
+    <div class="lesson-block"><h3><span>06</span>Checklist trước khi code</h3><ul class="deep-checklist">${deep.checklist.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></div>`;
+}
+
 function renderLesson(topic) {
   const lesson = LESSONS[topic.id];
   const application = APPLICATIONS[topic.id];
   const variants = TEMPLATE_VARIANTS[topic.id];
+  const deep = PHASE_ONE_DEEP_DIVES[topic.id];
+  const questions = deep?.questions || [lesson.quiz];
   const checked = Boolean(state.checks?.[topic.id]?.passed);
   $("#quizPassedMark").textContent = checked ? "✓" : "";
   $("#lessonLearnPane").innerHTML = `
@@ -1721,22 +1899,19 @@ function renderLesson(topic) {
       <span class="lesson-intro-code">${topic.code}</span>
       <div><h3>Học xong phải làm được gì?</h3><p>${escapeHTML(lesson.goal)}</p></div>
     </div>
-    <div class="lesson-block"><h3><span>01</span>Muốn học template, phải nắm 4 thứ</h3><div class="template-focus-grid">${application.learn.map((item, index) => `<div><b>0${index + 1}</b><strong>${escapeHTML(item)}</strong></div>`).join("")}</div></div>
-    <div class="lesson-block"><h3><span>02</span>Khi nào áp dụng?</h3><div class="use-grid"><div class="use-card yes"><strong>✓ DÙNG KHI</strong><p>${escapeHTML(application.use)}</p></div><div class="use-card no"><strong>× KHÔNG DÙNG KHI</strong><p>${escapeHTML(application.avoid)}</p></div></div></div>
-    <div class="lesson-block"><h3><span>03</span>Dấu hiệu trong đề</h3><ul class="recognise-list">${lesson.recognise.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></div>
-    <div class="lesson-block"><h3><span>04</span>Cách nghĩ trước khi code</h3><ol class="steps-list">${lesson.steps.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ol></div>
-    <div class="lesson-block"><h3><span>05</span>Các template trong chủ đề (${variants.length})</h3><p class="variant-help">Chọn từng biến thể — mỗi cái có điều kiện dùng, invariant, code và bẫy riêng.</p><div class="variant-picker">${variants.map((variant, index) => `<button class="${index === 0 ? "active" : ""}" type="button" data-template-variant="${variant.id}">${escapeHTML(variant.name)}</button>`).join("")}</div><div id="templateVariantDetail"></div></div>
-    <div class="lesson-block"><h3><span>06</span>Điểm chung cần hiểu</h3><div class="example-box">${escapeHTML(lesson.example)}</div></div>
-    <div class="lesson-block"><h3><span>07</span>Lỗi chung của chủ đề</h3><ul class="mistake-list">${lesson.mistakes.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></div>
+    ${deepDiveHTML(topic.id)}
+    <div class="lesson-block"><h3><span>${deep ? "07" : "01"}</span>Khi nào áp dụng?</h3><div class="use-grid"><div class="use-card yes"><strong>✓ DÙNG KHI</strong><p>${escapeHTML(application.use)}</p></div><div class="use-card no"><strong>× KHÔNG DÙNG KHI</strong><p>${escapeHTML(application.avoid)}</p></div></div></div>
+    <div class="lesson-block"><h3><span>${deep ? "08" : "02"}</span>Dấu hiệu trong đề</h3><ul class="recognise-list">${lesson.recognise.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></div>
+    <div class="lesson-block"><h3><span>${deep ? "09" : "03"}</span>Các template trong chủ đề (${variants.length})</h3><p class="variant-help">Chọn từng biến thể — mỗi cái có điều kiện dùng, invariant, code và bẫy riêng.</p><div class="variant-picker">${variants.map((variant, index) => `<button class="${index === 0 ? "active" : ""}" type="button" data-template-variant="${variant.id}">${escapeHTML(variant.name)}</button>`).join("")}</div><div id="templateVariantDetail"></div></div>
+    <div class="lesson-block"><h3><span>${deep ? "10" : "04"}</span>Lỗi chung của chủ đề</h3><ul class="mistake-list">${lesson.mistakes.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></div>
     <div class="practice-preview"><span>SAU KHI QUA KIỂM TRA</span><p>${(EXERCISES.filter((exercise) => exercise.topicId === topic.id).map((exercise) => exercise.title).length ? EXERCISES.filter((exercise) => exercise.topicId === topic.id).map((exercise) => escapeHTML(exercise.title)) : lesson.links.map((link) => escapeHTML(link.name))).join(" · ")}</p><small>Link đang khóa để m tự kiểm tra nhận dạng trước khi vào làm.</small></div>
     <div class="lesson-next"><p>Đừng mở bài luyện vội — trả lời đúng câu kiểm tra nhận dạng trước.</p><button class="secondary-button" data-go-check type="button">Sang phần kiểm tra →</button></div>`;
 
   $("#quizContent").innerHTML = `
     ${checked ? '<p class="passed-note">✓ M đã trả lời đúng chủ đề này. Có thể làm lại để ôn.</p>' : ""}
-    <span class="quiz-eyebrow">1 CÂU · KIỂM TRA NHẬN DẠNG</span>
-    <h3 class="quiz-question">${escapeHTML(lesson.quiz.question)}</h3>
-    <div class="quiz-options">${lesson.quiz.options.map((option, index) => `
-      <label class="quiz-option"><input type="radio" name="quizAnswer" value="${index}" /><span>${escapeHTML(option)}</span></label>`).join("")}</div>`;
+    <span class="quiz-eyebrow">${questions.length} CÂU · HIỂU ĐÚNG MỚI MỞ BÀI LUYỆN</span>
+    ${questions.map((question, questionIndex) => `<fieldset class="quiz-question-set"><legend><b>${questionIndex + 1}/${questions.length}</b>${escapeHTML(question.question)}</legend><div class="quiz-options">${question.options.map((option, optionIndex) => `
+      <label class="quiz-option"><input type="radio" name="quizAnswer-${questionIndex}" value="${optionIndex}" /><span>${escapeHTML(option)}</span></label>`).join("")}</div></fieldset>`).join("")}`;
   $("#quizResult").className = checked ? "quiz-result show correct" : "quiz-result";
   $("#quizResult").innerHTML = checked
     ? `<strong>Đã mở bài luyện MarisaOJ</strong>${escapeHTML(lesson.quiz.explanation)}${practiceLinksHTML(topic.id, lesson)}`
@@ -1748,6 +1923,13 @@ function renderLesson(topic) {
     if (button) renderTemplateVariant(topic.id, button.dataset.templateVariant);
   });
   $("#lessonLearnPane [data-go-check]").addEventListener("click", () => switchLessonTab("check"));
+  $("#lessonLearnPane .deep-copy")?.addEventListener("click", async (event) => {
+    try {
+      await navigator.clipboard.writeText(deep.solution);
+      event.currentTarget.textContent = "COPIED";
+      setTimeout(() => event.currentTarget.textContent = "COPY", 1200);
+    } catch { showToast("Không copy tự động được — hãy bôi đen đoạn code"); }
+  });
 }
 
 function renderTemplateVariant(topicId, variantId) {
@@ -1781,25 +1963,27 @@ function checkTopicQuiz(event) {
   event.preventDefault();
   const topicId = $("#topicId").value;
   const lesson = LESSONS[topicId];
-  const chosen = document.querySelector('input[name="quizAnswer"]:checked');
+  const questions = PHASE_ONE_DEEP_DIVES[topicId]?.questions || [lesson.quiz];
+  const chosen = questions.map((_, index) => document.querySelector(`input[name="quizAnswer-${index}"]:checked`));
   const result = $("#quizResult");
-  if (!chosen) {
+  if (chosen.some((answer) => !answer)) {
     result.className = "quiz-result show wrong";
-    result.innerHTML = "<strong>Chưa chọn đáp án</strong>Chọn một phương án rồi kiểm tra lại.";
+    result.innerHTML = `<strong>Chưa hoàn thành</strong>Trả lời đủ ${questions.length} câu rồi kiểm tra lại.`;
     return;
   }
-  if (Number(chosen.value) === lesson.quiz.answer) {
+  const wrongIndexes = questions.map((question, index) => Number(chosen[index].value) === question.answer ? -1 : index).filter((index) => index >= 0);
+  if (!wrongIndexes.length) {
     state.checks[topicId] = { passed: true, passedAt: new Date().toISOString() };
     state.topics[topicId].confidence = Math.max(2, state.topics[topicId].confidence);
     $("#quizPassedMark").textContent = "✓";
     result.className = "quiz-result show correct";
-    result.innerHTML = `<strong>Chuẩn — đã mở bài luyện</strong>${escapeHTML(lesson.quiz.explanation)}${practiceLinksHTML(topicId, lesson)}`;
+    result.innerHTML = `<strong>Đúng ${questions.length}/${questions.length} — đã mở bài luyện</strong>${questions.map((question, index) => `<p><b>Câu ${index + 1}:</b> ${escapeHTML(question.explanation)}</p>`).join("")}${practiceLinksHTML(topicId, lesson)}`;
     saveState("Qua kiểm tra — đã mở link MarisaOJ");
     renderStats();
     renderTopics();
   } else {
     result.className = "quiz-result show wrong";
-    result.innerHTML = `<strong>Chưa đúng — xem lại logic</strong>${escapeHTML(lesson.quiz.explanation)}`;
+    result.innerHTML = `<strong>Đúng ${questions.length - wrongIndexes.length}/${questions.length} — xem lại câu ${wrongIndexes.map((index) => index + 1).join(", ")}</strong>${wrongIndexes.map((index) => `<p><b>Gợi ý câu ${index + 1}:</b> ${escapeHTML(questions[index].explanation)}</p>`).join("")}`;
   }
 }
 
@@ -1817,7 +2001,10 @@ function logSession(event) {
   ).split(",").map((id) => id.trim()).filter(Boolean))];
   const hasCuratedExercises = EXERCISES.some((exercise) => exercise.topicId === topicId);
   const externalPractice = Boolean($("#sessionExternalPractice")?.checked);
-  if (hasCuratedExercises && !exerciseIds.length && !externalPractice) return showToast("Nhập mã bài đã AC hoặc đánh dấu bài ngoài kho");
+  const shouldBlock = typeof shouldBlockEmptyManualSession === 'function'
+    ? shouldBlockEmptyManualSession(hasCuratedExercises, exerciseIds.length, externalPractice)
+    : (hasCuratedExercises && !exerciseIds.length && !externalPractice);
+  if (shouldBlock) return showToast("Nhập mã bài đã AC hoặc đánh dấu bài ngoài kho");
   const knownExercises = exerciseIds.filter((id) => EXERCISES.some((exercise) => exercise.id === id && exercise.topicId === topicId));
   const invalidExercises = exerciseIds.filter((id) => !knownExercises.includes(id));
   if (invalidExercises.length) showToast(`Bỏ qua mã bài không hợp lệ: ${invalidExercises.join(", ")}`);
@@ -2039,8 +2226,7 @@ $("#copyPhoneConfigLinkBtn")?.addEventListener("click", () => {
   if (!config?.url || !config?.anonKey) return showToast("Hãy lưu URL và Key trước khi copy link.");
   const base = window.location.origin + window.location.pathname;
   const link = `${base}?cloudUrl=${encodeURIComponent(config.url)}&cloudKey=${encodeURIComponent(config.anonKey)}`;
-  navigator.clipboard.writeText(link);
-  showToast("Đã copy link! Gửi sang điện thoại mở lên là tự điền xong cấu hình.");
+  safeCopyToClipboard(link, "Đã copy link! Gửi sang điện thoại mở lên là tự điền xong cấu hình.");
 });
 $("#cloudMagicLinkButton")?.addEventListener("click", signInMagicLink);
 $("#cloudGoogleButton")?.addEventListener("click", signInGoogle);
@@ -2493,15 +2679,18 @@ function checkUrlImportParams() {
         const dur = Number(durParam) || 60;
         if ($("#contestDurationSelect")) $("#contestDurationSelect").value = String(dur);
         const labels = ['Bài A', 'Bài B', 'Bài C', 'Bài D'];
-        const targets = dur <= 45 ? [15, dur - 15] : dur === 90 ? [25, 30, 35] : dur === 120 ? [30, 45, 45] : dur === 180 ? [40, 70, 70] : [18, 24, 18];
+        const targets = typeof getContestTargets === 'function'
+          ? getContestTargets(dur, 'standard', matched.length)
+          : (dur <= 45 ? [15, dur - 15] : dur === 90 ? [25, 30, 35] : dur === 120 ? [30, 45, 45] : dur === 180 ? [40, 70, 70] : [18, 24, 18]);
+        const fallbackTarget = Math.max(10, Math.floor(dur / matched.length));
         previewContestProblems = matched.map((p, i) => ({
           ...p,
           label: labels[i] || `Bài ${i + 1}`,
-          targetMinutes: targets[i] || 20,
+          targetMinutes: targets[i] || fallbackTarget,
           status: i === 0 ? 'doing' : 'none',
           timeSeconds: 0
         }));
-        openVirtualContestDialog();
+        openVirtualContestDialog(true);
         renderContestSetupPreview();
         showToast(`Đã tải bộ đề thi thử được chia sẻ (${matched.length} bài, ${dur} phút)!`);
       }
@@ -2550,8 +2739,7 @@ $("#copyBookmarkletCodeBtn")?.addEventListener('click', () => {
   const text = $("#bookmarkletCodeText");
   if (text) {
     text.select();
-    navigator.clipboard.writeText(text.value);
-    showToast('Đã sao chép mã Bookmarklet vào clipboard!');
+    safeCopyToClipboard(text.value, 'Đã sao chép mã Bookmarklet vào clipboard!');
   }
 });
 
@@ -2593,45 +2781,43 @@ function getProposedContestProblems(strategy = 'standard', durationMinutes = nul
   };
 
   let chosen = [];
+  const targets = typeof getContestTargets === 'function'
+    ? getContestTargets(dur, strategy)
+    : (dur <= 45 ? (dur === 30 ? [12, 18] : [18, dur - 18]) : [20, 20, 20]);
 
   if (dur <= 45) {
     const p1 = pick(easyList);
     const p2 = pick(mediumList, [p1.id]);
-    const t1 = dur === 30 ? 12 : 18;
-    const t2 = dur - t1;
     chosen = [
-      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
-      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 }
+      { ...p1, label: 'Bài A', targetMinutes: targets[0] || 15, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: targets[1] || 15, status: 'none', timeSeconds: 0 }
     ];
   } else if (strategy === 'olp_chuyen') {
     const p1 = pick(mediumList);
     const p2 = pick(hardList, [p1.id]);
     const p3 = pick(extremeList, [p1.id, p2.id]);
-    const [t1, t2, t3] = dur === 180 ? [45, 65, 70] : dur === 120 ? [30, 45, 45] : [15, 25, 20];
     chosen = [
-      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
-      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
-      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+      { ...p1, label: 'Bài A', targetMinutes: targets[0] || 30, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: targets[1] || 45, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: targets[2] || 45, status: 'none', timeSeconds: 0 }
     ];
   } else if (strategy === 'olp_khong_chuyen') {
     const p1 = pick(easyList);
     const p2 = pick(easyList, [p1.id]);
     const p3 = pick(mediumList, [p1.id, p2.id]);
-    const [t1, t2, t3] = dur === 120 ? [35, 40, 45] : dur === 90 ? [25, 30, 35] : [18, 20, 22];
     chosen = [
-      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
-      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
-      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+      { ...p1, label: 'Bài A', targetMinutes: targets[0] || 25, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: targets[1] || 30, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: targets[2] || 35, status: 'none', timeSeconds: 0 }
     ];
   } else {
     const p1 = pick(easyList);
     const p2 = pick(mediumList, [p1.id]);
     const p3 = pick(hardList, [p1.id, p2.id]);
-    const [t1, t2, t3] = dur === 180 ? [40, 70, 70] : dur === 120 ? [30, 45, 45] : dur === 90 ? [25, 35, 30] : [18, 24, 18];
     chosen = [
-      { ...p1, label: 'Bài A', targetMinutes: t1, status: 'doing', timeSeconds: 0 },
-      { ...p2, label: 'Bài B', targetMinutes: t2, status: 'none', timeSeconds: 0 },
-      { ...p3, label: 'Bài C', targetMinutes: t3, status: 'none', timeSeconds: 0 }
+      { ...p1, label: 'Bài A', targetMinutes: targets[0] || 25, status: 'doing', timeSeconds: 0 },
+      { ...p2, label: 'Bài B', targetMinutes: targets[1] || 35, status: 'none', timeSeconds: 0 },
+      { ...p3, label: 'Bài C', targetMinutes: targets[2] || 30, status: 'none', timeSeconds: 0 }
     ];
   }
 
@@ -2682,7 +2868,7 @@ function copyShareContestLink() {
   }
 }
 
-function openVirtualContestDialog() {
+function openVirtualContestDialog(keepExistingPreview = false) {
   const dialog = $("#contestArenaDialog");
   if (!dialog) return;
 
@@ -2692,7 +2878,9 @@ function openVirtualContestDialog() {
     $("#contestLiveScreen")?.classList.remove('hidden');
     renderContestLiveArena();
   } else {
-    previewContestProblems = [];
+    if (keepExistingPreview !== true) {
+      previewContestProblems = [];
+    }
     renderContestSetupPreview();
     $("#contestSetupScreen")?.classList.remove('hidden');
     $("#contestLiveScreen")?.classList.add('hidden');
@@ -2916,10 +3104,15 @@ function finishVirtualContest(promptConfirm = true) {
   if (contestTimerInterval) clearInterval(contestTimerInterval);
   virtualContest.isFinished = true;
 
-  const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
-  const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
-  const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
-  const scaledScore = Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
+  const totalProblemsCount = virtualContest.problems.length || 3;
+  const scaledScore = typeof calculateMockScore === 'function'
+    ? calculateMockScore(virtualContest.problems)
+    : (() => {
+        const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
+        const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
+        const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
+        return Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
+      })();
   const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
 
   const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
@@ -2930,12 +3123,12 @@ function finishVirtualContest(promptConfirm = true) {
   $("#contestSummaryScreen")?.classList.remove('hidden');
 
   if ($("#contestFinalScore")) $("#contestFinalScore").textContent = scaledScore;
-  if ($("#contestAcCount")) $("#contestAcCount").textContent = `${acCount}/3`;
+  if ($("#contestAcCount")) $("#contestAcCount").textContent = `${acCount}/${totalProblemsCount}`;
   if ($("#contestTimeUsed")) $("#contestTimeUsed").textContent = `${totalUsedMins}'`;
 
   // Pace Rating
   let rating = "Tốt";
-  if (acCount === 3) rating = "Xuất sắc";
+  if (acCount === totalProblemsCount) rating = "Xuất sắc";
   else if (acCount === 0) rating = "Cần chỉnh chiến thuật";
   else if (scaledScore >= 60) rating = "Đạt mục tiêu OLP";
   if ($("#contestPaceRating")) $("#contestPaceRating").textContent = rating;
@@ -2968,8 +3161,8 @@ function finishVirtualContest(promptConfirm = true) {
   // Strategy Feedback
   let feedback = '';
   const stuckProblem = virtualContest.problems.find(p => p.status === 'stuck' || (p.status !== 'ac' && (p.timeSeconds || 0) > 1200));
-  if (acCount === 3) {
-    feedback = `<strong>Tuyệt vời!</strong> Bạn đã giải quyết trọn vẹn cả 3 bài trong thời gian quy định. Hãy duy trì nhịp độ này cho các mock tiếp theo.`;
+  if (acCount === totalProblemsCount) {
+    feedback = `<strong>Tuyệt vời!</strong> Bạn đã giải quyết trọn vẹn cả ${totalProblemsCount} bài trong thời gian quy định. Hãy duy trì nhịp độ này cho các mock tiếp theo.`;
   } else if (stuckProblem && (stuckProblem.timeSeconds || 0) > 1500) {
     feedback = `<strong>Lưu ý về quản lý thời gian:</strong> Bạn đã dành hơn 25 phút cho một bài chưa ra đáp án (${stuckProblem.title}). Trong kỳ thi OLP thật, hãy tuân thủ nguyên tắc: <em>nếu sau 15 phút không tiến triển, hãy ghi lại ý tưởng và chuyển sang bài khác</em> để tối đa hóa điểm số.`;
   } else if (acCount >= 1) {
@@ -2987,10 +3180,15 @@ function finishVirtualContest(promptConfirm = true) {
 
 function saveContestToHistory() {
   if (!virtualContest) return;
-  const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
-  const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
-  const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
-  const scaledScore = Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
+  const totalProblemsCount = virtualContest.problems.length || 3;
+  const scaledScore = typeof calculateMockScore === 'function'
+    ? calculateMockScore(virtualContest.problems)
+    : (() => {
+        const totalPoints = virtualContest.problems.reduce((s, p) => s + p.points, 0);
+        const earnedPoints = virtualContest.problems.reduce((s, p) => s + (p.status === 'ac' ? p.points : 0), 0);
+        const penalty = virtualContest.problems.reduce((sum, p) => sum + Math.max(0, Number(p.attempts || 0) - (p.status === 'ac' ? 1 : 0)) * 5 + Math.max(0, Math.ceil((Number(p.timeSeconds || 0) / 60 - p.targetMinutes) / 5)), 0);
+        return Math.max(0, Math.round((earnedPoints / (totalPoints || 1)) * 100) - penalty);
+      })();
   const acCount = virtualContest.problems.filter(p => p.status === 'ac').length;
   const totalUsedSec = virtualContest.problems.reduce((s, p) => s + (p.timeSeconds || 0), 0);
   const totalUsedMins = Math.max(1, Math.round(totalUsedSec / 60));
@@ -3006,7 +3204,7 @@ function saveContestToHistory() {
     minutes: totalUsedMins,
     submits: Number(virtualContest.submissions || 0),
     weakTopicId: weakTopic,
-    note: `[Virtual Mock] ${acCount}/3 AC · ${totalUsedMins} phút · Đề: ${virtualContest.problems.map(p => p.title).join(', ')}`,
+    note: `[Virtual Mock] ${acCount}/${totalProblemsCount} AC · ${totalUsedMins} phút · Đề: ${virtualContest.problems.map(p => p.title).join(', ')}`,
     createdAt: new Date().toISOString()
   });
 
@@ -3047,9 +3245,10 @@ async function runAIPostMortem() {
   }
 
   try {
+    const totalProblemsCount = virtualContest.problems.length || 3;
     const summaryData = {
       score: $("#contestFinalScore")?.textContent || 0,
-      acCount: $("#contestAcCount")?.textContent || '0/3',
+      acCount: $("#contestAcCount")?.textContent || `0/${totalProblemsCount}`,
       timeUsed: $("#contestTimeUsed")?.textContent || '0m',
       problems: virtualContest.problems.map(p => ({
         title: p.title,
@@ -3064,7 +3263,7 @@ async function runAIPostMortem() {
         task: 'mistake_analysis',
         context: buildAIContext(),
         input: {
-          problem: `Virtual Mock Contest 3 bài`,
+          problem: `Virtual Mock Contest ${totalProblemsCount} bài`,
           idea: JSON.stringify(summaryData, null, 2)
         }
       }
@@ -3338,10 +3537,13 @@ function updateConstraintCalculator() {
     const ops = c.calc(nVal);
     let tag = '';
     let rowClass = '';
+    const rating = typeof classifyComplexityOps === 'function'
+      ? classifyComplexityOps(ops, budgetOps)
+      : (ops <= budgetOps ? "PASS" : ops <= budgetOps * 2.5 ? "TIGHT" : "FAIL");
 
-    if (ops <= budgetOps) {
+    if (rating === "PASS") {
       tag = `<span class="calc-tag pass">✓ AN TOÀN (${Math.round((ops / budgetOps) * 100)}%)</span>`;
-    } else if (ops <= budgetOps * 2.5) {
+    } else if (rating === "TIGHT") {
       tag = `<span class="calc-tag tight">⚠️ CÂN NHẮC (SÁT GIỜ)</span>`;
       rowClass = 'row-tight';
     } else {
@@ -4031,13 +4233,21 @@ async function runCounterTest(e) {
   showToast("Đã sinh 3 test case phản ví dụ!");
 }
 
+window.safeCopyToClipboard = function(text, successMsg = "Đã sao chép vào clipboard!") {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(successMsg);
+    }).catch(() => {
+      prompt("Sao chép nội dung:", text);
+    });
+  } else {
+    prompt("Sao chép nội dung:", text);
+  }
+};
+
 window.copyTextToClipboard = function(text) {
   const unescaped = text.replace(/\\n/g, '\n');
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(unescaped).then(() => showToast("Đã chép test input vào clipboard!"));
-  } else {
-    prompt("Sao chép input:", unescaped);
-  }
+  safeCopyToClipboard(unescaped, "Đã chép test input vào clipboard!");
 };
 
 // Wire CP Arsenal Events
@@ -4073,7 +4283,7 @@ document.querySelectorAll('.stress-tab-btn').forEach(btn => {
 $("#copyStressCodeBtn")?.addEventListener('click', () => {
   const code = $("#stressCodeArea")?.value;
   if (code) {
-    navigator.clipboard.writeText(code).then(() => showToast("Đã chép mã nguồn vào clipboard!"));
+    safeCopyToClipboard(code, "Đã chép mã nguồn vào clipboard!");
   }
 });
 $("#downloadStressFilesBtn")?.addEventListener('click', downloadStressScript);
@@ -4092,6 +4302,20 @@ $("#clearCounterTestBtn")?.addEventListener('click', () => {
   }
 });
 
+// Mobile helper: tap backdrop to close dialog
+function initDialogBackdropClosing() {
+  document.querySelectorAll('dialog.app-dialog').forEach(dialog => {
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) {
+        if (dialog.id === 'contestArenaDialog' && !$('#contestLiveScreen')?.classList.contains('hidden')) {
+          return; // don't close live contest on accidental tap
+        }
+        dialog.close();
+      }
+    });
+  });
+}
+
 // Init on load
 populateCodeReviewTopics();
 setupBookmarklet();
@@ -4100,3 +4324,4 @@ restoreVirtualContestFromStorage();
 initAppTabs();
 updateConstraintCalculator();
 renderStressTestSuite();
+initDialogBackdropClosing();

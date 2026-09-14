@@ -2,8 +2,8 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#07111f" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0f19" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="manifest.webmanifest" />
@@ -19,7 +19,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -162,7 +162,7 @@
               <span class="time-pill" id="radarOverallLabel">Đang tính...</span>
             </div>
             <div class="radar-container">
-              <svg id="skillRadarChart" viewBox="0 0 340 320" class="skill-radar-svg"></svg>
+              <svg id="skillRadarChart" viewBox="0 0 380 340" class="skill-radar-svg"></svg>
               <div class="radar-legend" id="radarLegend"></div>
             </div>
           </article>
@@ -580,7 +580,7 @@
         </div>
 
         <nav class="lesson-tabs" aria-label="Nội dung chủ đề">
-          <button class="active" type="button" data-lesson-tab="learn">01 · Học template</button>
+          <button class="active" type="button" data-lesson-tab="learn">01 · Bài học</button>
           <button type="button" data-lesson-tab="check">02 · Kiểm tra <span id="quizPassedMark"></span></button>
           <button type="button" data-lesson-tab="progress">03 · Tiến độ</button>
         </nav>
@@ -887,7 +887,7 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
               <option value="olp_khong_chuyen">Khối Không Chuyên: 2 Dễ + 1 Vừa</option>
               <option value="graph_dp">Focus: Đồ thị &amp; Quy hoạch động</option>
               <option value="unsolved">Ưu tiên bài chưa AC trong kho</option>
-              <option value="all">Ngẫu nhiên từ toàn bộ kho (104 bài)</option>
+              <option value="all">Ngẫu nhiên từ toàn bộ kho (116 bài)</option>
             </select>
           </label>
         </div>
@@ -1113,6 +1113,7 @@ Giới hạn: 1 <= n <= 10^5..."></textarea>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
     <script src="supabase-config.js"></script>
-    <script src="app.js?v=11"></script>
+    <script src="tracker-logic.js?v=11"></script>
+    <script src="app.js?v=12"></script>
   </body>
 </html>
